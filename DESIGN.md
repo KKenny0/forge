@@ -47,56 +47,57 @@ Direct, confident, builder-focused. Think YC partner meets staff engineer. No fl
 ```
 forge/
 ├── SKILL.md                    # Main entry point: sprint overview, routing, pre-flight
+│                                # Format: Claude Code SKILL.md (canonical)
 ├── DESIGN.md                   # This document
 ├── CHANGELOG.md
 ├── LICENSE
+├── README.md
 │
 ├── skills/
 │   ├── think/
-│   │   ├── office-hours.md     # 6 forcing questions (gstack)
-│   │   ├── brainstorming.md    # Socratic design refinement (superpowers)
-│   │   └── design-consult.md   # Design system creation (gstack, adapted)
+│   │   ├── office-hours.md     # /forge-office-hours — 6 forcing questions (gstack)
+│   │   ├── brainstorming.md    # /forge-brainstorm — Socratic design refinement (superpowers)
+│   │   └── design-consult.md   # /forge-design — Design system creation (gstack, adapted)
 │   │
 │   ├── plan/
-│   │   ├── ceo-review.md       # Strategic scope review (gstack)
-│   │   ├── eng-review.md       # Architecture & edge cases (gstack)
-│   │   ├── design-review.md    # Design dimension scoring (gstack)
-│   │   └── writing-plans.md    # Bite-sized tasks, zero placeholders (superpowers)
+│   │   ├── ceo-review.md       # /forge-ceo-review — Strategic scope review (gstack)
+│   │   ├── eng-review.md       # /forge-eng-review — Architecture & edge cases (gstack)
+│   │   ├── design-review.md    # /forge-design-review — Design dimension scoring (gstack)
+│   │   └── writing-plans.md    # /forge-plan — Bite-sized tasks, zero placeholders (superpowers)
 │   │
 │   ├── build/
-│   │   ├── subagent-dev.md     # Subagent-per-task, 2-stage review (superpowers)
-│   │   ├── exec-plans.md       # Sequential execution with checkpoints (superpowers)
-│   │   ├── tdd.md              # RED-GREEN-REFACTOR (superpowers)
-│   │   └── worktrees.md        # Git worktree isolation (superpowers)
+│   │   ├── subagent-dev.md     # /forge-build — Subagent-per-task + parallel sprints (superpowers)
+│   │   ├── exec-plans.md       # /forge-exec — Sequential execution (superpowers)
+│   │   ├── tdd.md              # /forge-tdd — RED-GREEN-REFACTOR (superpowers)
+│   │   └── worktrees.md        # /forge-worktree — Git worktree isolation (superpowers)
 │   │
 │   ├── review/
-│   │   ├── code-review.md      # SQL safety, LLM boundaries, auto-fix (gstack)
-│   │   ├── cross-model.md      # Codex/multi-model second opinion (gstack)
-│   │   ├── request-review.md   # Dispatch reviewer subagent (superpowers)
-│   │   ├── receive-review.md   # Behavioral guardrails (superpowers)
-│   │   └── visual-review.md    # Before/after visual QA (gstack)
+│   │   ├── code-review.md      # /forge-review — SQL safety, LLM boundaries, auto-fix (gstack)
+│   │   ├── cross-model.md      # /forge-cross-review — Multi-model second opinion (gstack)
+│   │   ├── request-review.md   # /forge-request-review — Dispatch reviewer subagent (superpowers)
+│   │   ├── receive-review.md   # /forge-receive-review — Behavioral guardrails (superpowers)
+│   │   └── visual-review.md    # /forge-visual-review — Before/after visual QA (gstack)
 │   │
 │   ├── test/
-│   │   ├── qa.md               # Test → fix → commit → verify (gstack)
-│   │   ├── qa-report.md        # Findings only, no code changes (gstack)
-│   │   ├── security.md         # 14-phase security audit (gstack)
-│   │   ├── debug.md            # 4-phase root cause (merged: sp + gstack)
-│   │   └── verify.md           # Evidence-based completion gate (superpowers)
+│   │   ├── qa.md               # /forge-qa — Test → fix → commit → verify (gstack)
+│   │   ├── qa-report.md        # /forge-qa-report — Findings only, no code changes (gstack)
+│   │   ├── security.md         # /forge-cso — 14-phase security audit (gstack)
+│   │   ├── debug.md            # /forge-debug — 4-phase root cause (merged: sp + gstack)
+│   │   └── verify.md           # /forge-verify — Evidence-based completion gate (superpowers)
 │   │
 │   ├── ship/
-│   │   ├── ship.md             # Full shipping pipeline (gstack)
-│   │   ├── deploy.md           # Merge → CI → deploy → verify (gstack)
-│   │   ├── finish-branch.md    # 4-option branch completion (superpowers)
-│   │   └── document-release.md # Post-ship doc sync (gstack)
+│   │   ├── ship.md             # /forge-ship — Full shipping pipeline (gstack)
+│   │   ├── deploy.md           # /forge-deploy — Merge → CI → deploy → verify (gstack)
+│   │   ├── finish-branch.md    # /forge-finish — 4-option branch completion (superpowers)
+│   │   └── document-release.md # /forge-docs — Post-ship doc sync (gstack)
 │   │
 │   └── reflect/
-│       ├── retro.md            # Weekly retrospective with trends (gstack)
-│       ├── learn.md            # Learning persistence (gstack)
-│       └── writing-skills.md   # Meta: TDD for documentation (superpowers)
+│       ├── retro.md            # /forge-retro — Weekly retrospective with trends (gstack)
+│       ├── learn.md            # /forge-learn — Learning persistence (gstack)
+│       └── writing-skills.md   # /forge-write-skill — Meta: TDD for documentation (superpowers)
 │
 ├── platform/
-│   ├── openclaw.md             # Tool mapping + conventions for OpenClaw
-│   └── claude-code.md          # Tool mapping + conventions for Claude Code
+│   └── openclaw.md             # Tool mapping + conventions for OpenClaw (adapter layer)
 │
 └── templates/
     ├── design-doc.md           # Design specification template
@@ -1044,29 +1045,84 @@ User Request
 
 ## 7. Implementation Plan
 
-### Phase 1 — MVP (Core Pipeline)
+### Phase 1 — MVP (Core Pipeline + Parallel Sprints)
 
-**Goal:** Run the minimal sprint: Think → Plan → Build → Review → Ship
+**Goal:** Run the minimal sprint with parallel sprint support: Think → Plan → Build → Review → Ship
 
-**Skills to implement (8):**
-1. `SKILL.md` — Router + platform detection
-2. `platform/openclaw.md` — OpenClaw tool mapping
-3. `platform/claude-code.md` — Claude Code tool mapping
-4. `skills/think/brainstorming.md`
-5. `skills/plan/writing-plans.md`
-6. `skills/build/tdd.md`
-7. `skills/build/subagent-dev.md`
-8. `skills/review/code-review.md`
-9. `skills/ship/ship.md`
-10. `skills/test/verify.md`
+**Skills to implement (12):**
+1. `SKILL.md` — Router + platform detection + slash-command mapping
+2. `platform/openclaw.md` — OpenClaw tool mapping (adapter layer)
+3. `skills/think/brainstorming.md` — Design-first gate
+4. `skills/think/office-hours.md` — 6 forcing questions
+5. `skills/plan/writing-plans.md` — Bite-sized tasks, zero placeholders
+6. `skills/build/tdd.md` — RED-GREEN-REFACTOR enforcement
+7. `skills/build/subagent-dev.md` — Subagent-per-task + parallel sprint coordinator
+8. `skills/build/exec-plans.md` — Sequential execution fallback
+9. `skills/review/code-review.md` — Pattern-based diff analysis
+10. `skills/test/verify.md` — Evidence-based completion gate
+11. `skills/ship/ship.md` — Full shipping pipeline
+12. `skills/ship/finish-branch.md` — Branch completion with 4 options
 
-**Templates:** design-doc.md, plan.md
+**Templates:** design-doc.md, plan.md, ship-checklist.md
 
-**Success criteria:** A user can go from "build me a feature" to shipped code with tests, review, and PR on both OpenClaw and Claude Code.
+**Parallel sprint design:**
+```
+Sprint Coordinator (in main session):
+├── Parse PLAN.md → identify independent tasks
+├── Group by dependency (DAG)
+├── Dispatch independent tasks in parallel:
+│   ├── Task A → sessions_spawn(model: fast, task: ...)
+│   ├── Task B → sessions_spawn(model: fast, task: ...)
+│   └── Task C → sessions_spawn(model: standard, task: ...)
+├── Monitor completion (push-based, no polling)
+├── Reconcile results:
+│   ├── Check for conflicts
+│   ├── Run integration tests
+│   └── Merge or flag issues
+└── → REVIEW phase (sequential)
+```
+
+**Subagent context format:**
+```markdown
+## Task Context
+
+### Task: {task_name}
+**From plan:** {plan_file}
+**Priority:** {high|medium|low}
+**Model recommendation:** {fast|standard|powerful}
+
+### What to implement
+{task_description}
+
+### Files to modify
+{file_list_with_paths}
+
+### Code to write
+```{language}
+{exact_code_from_plan}
+```
+
+### Tests to write
+```{language}
+{test_code_from_plan}
+```
+
+### Verification
+- Run: `{verification_command}`
+- Expected: `{expected_output}`
+
+### Constraints
+- TDD is mandatory (test first, then implement)
+- No production code without a failing test
+- Commit after each passing test
+- If blocked, report BLOCKED with reason
+```
+
+**Success criteria:** A user can go from "build me a feature" to shipped code with tests, review, and PR on both OpenClaw and Claude Code. Parallel tasks execute concurrently.
 
 ### Phase 2 — Complete Sprint
 
-**Skills to implement (remaining 22):**
+**Skills to implement (remaining 18):**
 - All remaining skills from the matrix
 - All templates
 - Full anti-rationalization system
@@ -1082,27 +1138,22 @@ User Request
 
 ### Phase 4 — Polish
 
-- README.md with installation instructions for both platforms
-- CLAUDE.md snippet for Claude Code
-- AGENTS.md snippet for OpenClaw
 - Contributing guide
 - skill-vetter self-audit
+- Claude Code marketplace submission
+- ClawhHub listing
 
 ---
 
-## 8. Open Questions
+## 8. Resolved Decisions
 
-1. **Skill format:** Should we use OpenClaw's SKILL.md format (YAML frontmatter + markdown) as the canonical format, and generate Claude Code's format from it? Or maintain two parallel formats?
-   - *Lean toward:* OpenClaw SKILL.md as canonical, with a conversion script for Claude Code
+1. **Canonical format: Claude Code SKILL.md.** Claude Code's SKILL.md format (YAML frontmatter + markdown body with Bash/Read/Write/Edit tool references) is the canonical format. OpenClaw adapter layer translates tool calls. This maximizes compatibility since Claude Code has the larger user base for skill packs.
 
-2. **Naming convention:** Claude Code uses `/skill-name` invocation. OpenClaw auto-detects by description. Should we support slash-command style for Claude Code compatibility?
-   - *Lean toward:* Yes, include slash-command aliases in SKILL.md frontmatter
+2. **Slash-command support: Yes.** Every skill supports `/forge-{name}` invocation (e.g., `/forge-brainstorm`, `/forge-qa`, `/forge-ship`). Short aliases also supported (e.g., `/brainstorm`, `/qa`) when no naming conflict exists.
 
-3. **Subagent isolation:** OpenClaw's `sessions_spawn` creates isolated sessions. Claude Code's `Task` also isolates. But the review template system needs to pass structured context. What's the best format?
-   - *Lean toward:* JSON context blob passed as task description, with a schema defined in the skill
+3. **Subagent context format: Structured markdown with JSON sections.** Use a structured markdown template for subagent context (more natural for LLM consumption than raw JSON), with embedded JSON blocks for structured data (file paths, SHAs, test results). Schema defined per skill.
 
-4. **Parallel sprints:** gstack supports 10-15 parallel sprints via Conductor. Should Forge support this in Phase 1?
-   - *Lean toward:* No. Sequential first, parallel as a Phase 4 enhancement
+4. **Parallel sprints in Phase 1.** Parallel sprint support is part of the MVP. Uses OpenClaw's `sessions_spawn` or Claude Code's `Task` for concurrent subagents. Includes a sprint coordinator pattern that dispatches, monitors, and reconciles parallel work.
 
 ---
 
