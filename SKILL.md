@@ -72,7 +72,7 @@ Before routing, classify the task. This determines which phases to run.
 
 | Type | Trigger Phases | Typical Request |
 |------|---------------|-----------------|
-| **feature** | THINK → PLAN → BUILD → REVIEW → TEST → REFLECT | "Build me a user dashboard" |
+| **feature** | THINK → PLAN → BUILD → REVIEW → TEST | "Build me a user dashboard" |
 | **bugfix** | TEST (debug) → BUILD → REVIEW | "The login form doesn't work" |
 | **refactor** | REVIEW → BUILD → TEST | "Clean up the auth module" |
 | **hotfix** | BUILD (skip review for critical) | "Production is down, fix it now" |
@@ -108,7 +108,24 @@ The user can override the auto-selected mode at any time.
 - **PLAN:** `expand` = run all reviews, `hold` = skip reviews, write plan directly
 - **BUILD:** `expand` = suggest improvements, `hold` = implement exactly, no suggestions
 - **REVIEW/TEST:** All modes = full discipline (quality is non-negotiable)
-- **REFLECT:** `expand` = deep retro, `hold` = quick learn only
+- **REFLECT:** User-invoked only. `expand` = deep retro, `hold` = targeted learn capture
+
+### Relevant Learnings Recall
+
+If `.taku/learnings/{project-slug}.jsonl` exists, search it after task classification and again before PLAN, BUILD, REVIEW, and TEST.
+
+- Only read existing learnings. Do not create, edit, or prune learnings outside `/taku-reflect`.
+- Filter by current task type plus simple keyword overlap from the user's request or active module.
+- Prefer `high` confidence, then `medium`.
+- Show at most 3-5 items in this format:
+
+```text
+RELEVANT LEARNINGS
+- L2026-04-21-001 [preference/high]: user prefers plan-first for non-trivial changes
+- L2026-04-18-002 [pitfall/high]: routing fixes often need regression tests
+```
+
+This recall is context only. It informs planning, implementation, and testing, but it is not a hard rule engine and does not write new long-term memory.
 
 ---
 
@@ -251,11 +268,11 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
          └─────┬──────┘
            yes │       │ no
                ▼       ▼
-┌──────────────────┐  ┌──────────────────────┐
-│ /taku-debug      │  │ All tests pass       │
-│ Root cause       │  │ → auto-route REFLECT │
-│ investigation    │  └──────────────────────┘
-└──────────────────┘
+┌──────────────────┐  ┌─────────────────────────────┐
+│ /taku-debug      │  │ All tests pass              │
+│ Root cause       │  │ → sprint complete           │
+│ investigation    │  │   reflect remains optional  │
+└──────────────────┘  └─────────────────────────────┘
 ```
 
 **Rules:**
@@ -264,19 +281,19 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 - **Iron Law:** No completion claims without fresh verification evidence. "It should work" is not a completion statement. Run the command, read the output, then claim the result.
 - `/taku-debug` is also invoked on-demand at any phase when encountering unexpected behavior
 
-**→ On completion: auto-route to REFLECT phase**
+**→ On completion: sprint is verified. `/taku-reflect` is available if the user wants to record learnings or run a retro.**
 
 ### REFLECT Phase
 
-**Entry:** Code tested and verified.
+**Entry:** User explicitly invokes `/taku-reflect` after a sprint or during a retro moment.
 
 **Skill Sequence:**
 
 ```
 ┌─────────────────────────────────────┐
-│ /taku-reflect (learn mode)         │
-│ Record: patterns, pitfalls,         │
-│ preferences from this sprint       │
+│ /taku-reflect (learn mode)          │
+│ Record user-approved patterns,      │
+│ pitfalls, preferences               │
 └──────────────┬──────────────────────┘
                │
                ▼
@@ -288,9 +305,10 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 ```
 
 **Rules:**
-- Learn mode runs after every sprint (quick — record key learnings)
-- Retro mode runs weekly or on explicit request (heavier — full analysis)
-- REFLECT is optional — ask user if they want to run it
+- REFLECT is user-invoked. Do not auto-run it after TEST or at sprint completion.
+- Learn mode records only user-approved learnings.
+- Retro mode runs weekly or on explicit request (heavier — full analysis).
+- Existing learnings may be auto-recalled in later phases as context, but only `/taku-reflect` may create or update long-term learnings.
 
 ---
 
@@ -306,7 +324,7 @@ The sprint **auto-progresses** between phases. The agent should NOT wait for the
 | PLAN | BUILD | PLAN.md written and self-reviewed |
 | BUILD | REVIEW | All tasks in PLAN.md marked DONE |
 | REVIEW | TEST | All Critical findings fixed |
-| TEST | REFLECT | Test suite passes |
+| TEST | sprint complete | Test suite passes |
 
 ### Pause Points (require user action)
 
@@ -342,7 +360,7 @@ Current phase: BUILD (3/6 tasks complete)
   → building — in progress (task 4: user authentication)
   ○ review — pending
   ○ test — pending
-  ○ reflect — pending
+  ○ reflect — optional
 
 Artifacts:
   DESIGN.md ✓
@@ -366,7 +384,8 @@ This is the complete sequence for a greenfield feature with all capabilities ava
         → /taku-build (parallel or sequential, TDD enforced)
           → /taku-review
             → /taku-debug (if tests fail)
-              → /taku-reflect
+              → sprint complete
+                → /taku-reflect (only if user asks)
 ```
 
 **Shortcuts by task type:**
