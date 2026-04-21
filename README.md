@@ -38,14 +38,11 @@ Each phase has dedicated skills with iron-clad rules, anti-rationalization guard
 | Phase | Skill | What Happens |
 |-------|-------|-------------|
 | **Think** | `/taku-think` | Adaptive Quick/Design/Explore — right-sized thinking before code |
-| **Plan** | `/taku-plan-review` | Strategic scope + architecture review |
-| | `/taku-design-review` | Rate design dimensions 0–10, fix what's weak |
-| | `/taku-plan` | Bite-sized tasks with exact file paths, TDD steps |
-| **Build** | `/taku-build` | Parallel or sequential execution with mode auto-selection |
-| | `/taku-tdd` | RED-GREEN-REFACTOR enforcement |
+| **Plan** | `/taku-plan` | Scope review → design review → bite-sized tasks with TDD steps |
+| **Build** | `/taku-build` | Parallel or sequential execution, TDD enforced, optional worktree isolation |
 | **Review** | `/taku-review` | Pattern-based code review with auto-fix |
 | **Test** | `/taku-debug` | 4-phase root cause investigation |
-| **Reflect** | `/taku-reflect` | Learn (quick) or retro (weekly) with mode selection |
+| **Reflect** | `/taku-reflect` | Learn, retro, or codify patterns into reusable skills |
 
 
 ## Philosophy
@@ -73,6 +70,17 @@ Each phase has dedicated skills with iron-clad rules, anti-rationalization guard
 
 # Manual
 git clone https://github.com/KKenny0/Taku.git ~/.claude/skills/taku
+
+# Enable slash commands for each phase (one-time setup)
+# macOS / Linux:
+for phase in think plan build review test reflect; do
+  ln -s ~/.claude/skills/taku/skills/$phase ~/.claude/skills/taku-$phase
+done
+
+# Windows (PowerShell, run as admin):
+foreach ($phase in @("think","plan","build","review","test","reflect")) {
+  New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\taku-$phase" -Target "$env:USERPROFILE\.claude\skills\taku\skills\$phase"
+}
 ```
 
 ### OpenClaw
