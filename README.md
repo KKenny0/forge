@@ -37,8 +37,7 @@ Each phase has dedicated skills with iron-clad rules, anti-rationalization guard
 
 | Phase | Skill | What Happens |
 |-------|-------|-------------|
-| **Think** | `/taku-office-hours` | 6 forcing questions reframe your product before you write code |
-| | `/taku-brainstorm` | Socratic design refinement + design system creation |
+| **Think** | `/taku-think` | Adaptive Quick/Design/Explore — right-sized thinking before code |
 | **Plan** | `/taku-plan-review` | Strategic scope + architecture review |
 | | `/taku-design-review` | Rate design dimensions 0–10, fix what's weak |
 | | `/taku-plan` | Bite-sized tasks with exact file paths, TDD steps |

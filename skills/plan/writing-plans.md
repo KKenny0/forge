@@ -1,6 +1,6 @@
 ---
 name: taku-plan
-description: Use when the user has an approved design and needs to turn it into an executable plan. Triggers after /taku-brainstorm or /taku-plan-review.
+description: Use when the user has an approved design and needs to turn it into an executable plan. Triggers after /taku-think or /taku-plan-review.
 ---
 
 # Writing Implementation Plans

@@ -31,7 +31,7 @@ Check enhanced capabilities. Store as session state. Missing = skip, don't block
 
 | Capability | Check | Enables |
 |------------|-------|---------|
-| Image gen | image_generate tool | `/taku-brainstorm` design system previews |
+| Image gen | image_generate tool | `/taku-think` design system previews |
 
 ### Project State Detection
 
@@ -124,33 +124,21 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 
 ```
 ┌─────────────────────────────────────┐
-│ Step 1: /taku-office-hours         │
-│ (if feature type or idea type)      │
-│ Output: .taku/office-hours.md      │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│ Step 2: /taku-brainstorm          │
-│ Reads: office-hours output          │
-│ Output: DESIGN.md                   │
+│ /taku-think                         │
+│ Auto-selects mode:                  │
+│   Quick   — simple, clear path      │
+│   Design  — feature with choices    │
+│   Explore — idea-stage validation   │
+│ Output: DESIGN.md or mini design    │
 │ Gate: User must explicitly approve  │
-└──────────────┬──────────────────────┘
-               │ approved
-               ▼
-┌─────────────────────────────────────┐
-│ Step 3 (optional): /taku-brainstorm│
-│ Design system mode for UX-heavy   │
-│ projects. Reads: DESIGN.md        │
-│ Appends: Design system section    │
 └─────────────────────────────────────┘
 ```
 
 **Rules:**
-- If task type is `idea` → run office-hours only, then stop (ask user if they want to continue)
+- If task type is `idea` → use Explore mode, then stop (ask user if they want to continue)
 - If task type is `bugfix`/`hotfix`/`refactor` → **skip THINK entirely**
-- office-hours output feeds into brainstorming as context
-- brainstorming's HARD GATE means the agent CANNOT proceed to PLAN without user approval
+- Hard gate: no code until design is approved
+- Design System mode activates only for UI-heavy projects (keyword-triggered)
 
 **→ On completion: route to PLAN phase**
 
@@ -375,8 +363,7 @@ SPRINT STATUS
 ═════════════
 Task type: feature
 Current phase: BUILD (3/6 tasks complete)
-  ✓ office-hours — done
-  ✓ brainstorming — DESIGN.md approved
+  ✓ think — DESIGN.md approved
   ✓ planning — PLAN.md written (8 tasks)
   → building — in progress (task 4: user authentication)
   ○ review — pending
@@ -386,7 +373,7 @@ Current phase: BUILD (3/6 tasks complete)
 Artifacts:
   DESIGN.md ✓
   PLAN.md ✓
-  .taku/office-hours-2026-03-30.md ✓
+  .taku/explore-2026-03-30.md ✓
 ```
 
 Use this format when the user asks "where are we?" or "what's the status?"
@@ -398,8 +385,8 @@ Use this format when the user asks "where are we?" or "what's the status?"
 This is the complete sequence for a greenfield feature with all capabilities available:
 
 ```
-/taku-office-hours
-  → /taku-brainstorm → DESIGN.md approved
+/taku-think (Quick/Design/Explore)
+  → DESIGN.md approved
     → /taku-plan-review → /taku-design-review → /taku-plan → PLAN.md
       → /taku-worktree
         → /taku-build (parallel or sequential, TDD enforced)
@@ -416,7 +403,7 @@ This is the complete sequence for a greenfield feature with all capabilities ava
 | hotfix | `/taku-build` (skip review for urgency) |
 | refactor | `/taku-review` → `/taku-build` → `/taku-review` |
 | review | `/taku-review` |
-| idea | `/taku-office-hours` → (ask user if they want to continue) |
+| idea | `/taku-think` (Explore mode) → (ask user if they want to continue) |
 
 ---
 
@@ -424,8 +411,7 @@ This is the complete sequence for a greenfield feature with all capabilities ava
 
 | Command | Phase | Skill |
 |---------|-------|-------|
-| `/taku-office-hours` | THINK | 6 forcing questions |
-| `/taku-brainstorm` | THINK | Socratic design + design system |
+| `/taku-think` | THINK | Adaptive Quick/Design/Explore |
 | `/taku-plan-review` | PLAN | Scope + architecture review |
 | `/taku-design-review` | PLAN | Design scoring |
 | `/taku-plan` | PLAN | Write plan |
