@@ -16,6 +16,10 @@ Taku is a structured development workflow for coding agents. It turns vague prom
 Think -> Plan -> Build -> Review -> Verify -> Reflect
 ```
 
+<p align="center">
+  <img src="promo/readme-phase-flow.svg" alt="Taku six-phase flow: Think, Plan, Build, Review, Verify, Reflect — 切磋琢磨" width="100%" />
+</p>
+
 This repository is the current `v0.2.0` skill pack. It includes:
 
 - a top-level orchestrator in `SKILL.md`
@@ -62,7 +66,7 @@ The repository has been simplified around six entry skills:
 | Build | `/taku-build` | Agent-chosen sequential / parallel / hybrid execution with TDD, wave visibility, and optional worktree isolation |
 | Review | `/taku-review` | Diff-based code review with scope drift checks and fix-first posture |
 | Verify | `/taku-debug` | Verification gate plus 4-phase root cause investigation when checks fail or behavior is broken |
-| Reflect | `/taku-reflect` | Learning capture, retro, and skill codification when explicitly invoked |
+| Reflect | `/taku-reflect` | Learning capture, retro, skill codification, and optional learnings-protocol bootstrap when explicitly invoked |
 
 This is not a bag of unrelated prompts. The skills are designed to hand work off from one phase to the next.
 
@@ -139,6 +143,8 @@ That prevents the most common AI bugfix loop: changing things until the output c
 ### 6. It keeps long-term memory under control
 
 `/taku-reflect` is manual by design. Taku does not continuously write "learnings" just because something happened once.
+
+On the first successful reflect run for a project, it can also suggest bootstrapping a short learnings-discovery note into `AGENTS.md` and/or `CLAUDE.md` so non-Taku sessions know to consult `.taku/learnings/...` before non-trivial work.
 
 Only user-approved patterns, pitfalls, preferences, and discoveries get preserved.
 

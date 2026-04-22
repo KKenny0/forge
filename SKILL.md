@@ -127,6 +127,8 @@ RELEVANT LEARNINGS
 
 This recall is context only. It informs planning, implementation, and testing, but it is not a hard rule engine and does not write new long-term memory.
 
+If the project has been bootstrapped by `/taku-reflect`, the same discoverability protocol may also appear in `AGENTS.md` and/or `CLAUDE.md` so non-Taku sessions know to consult `.taku/learnings/...` before non-trivial work.
+
 ---
 
 ## 3. Phase Orchestrations
@@ -315,6 +317,7 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 - Learn mode records only user-approved learnings.
 - Retro mode runs weekly or on explicit request (heavier — full analysis).
 - Existing learnings may be auto-recalled in later phases as context, but only `/taku-reflect` may create or update long-term learnings.
+- On the first successful reflect run, check whether `AGENTS.md` and/or `CLAUDE.md` should receive the Taku learnings protocol block; if both files exist, suggest injecting the same block into both after user confirmation.
 
 ---
 

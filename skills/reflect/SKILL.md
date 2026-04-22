@@ -86,12 +86,49 @@ Learnings live in `.taku/learnings/{project-slug}.jsonl`. Each line:
 
 Other Taku phases may search existing learnings automatically, but only as context:
 
-- Search after task classification and before PLAN, BUILD, REVIEW, and TEST
+- Search after task classification and before PLAN, BUILD, REVIEW, and VERIFY
 - Filter by task type and simple keyword overlap
 - Prefer `high` confidence, then `medium`
 - Show at most 3-5 relevant learnings
 
 This recall must never create, edit, or prune learnings. Long-term memory changes happen only inside `/taku-reflect`.
+
+### Project Bootstrap
+
+On the first successful reflect run for a project, check whether the project-level instruction files advertise the Taku learnings protocol.
+
+**When to check:**
+
+- `.taku/` already exists or this reflect run is about to create `.taku/learnings/{project-slug}.jsonl`
+- At least one of `AGENTS.md` or `CLAUDE.md` exists at the project root
+- The target file does not already contain the Taku learnings protocol block
+
+**Target selection:**
+
+- If only `AGENTS.md` exists, suggest injecting the protocol there
+- If only `CLAUDE.md` exists, suggest injecting the protocol there
+- If both files exist, suggest injecting the same protocol block into both files so non-Taku sessions do not depend on which project instruction file gets loaded
+- If one file already has the block and the other does not, suggest patching only the missing file
+- If neither file exists, do not create one automatically; just note that no project-level bootstrap target exists yet
+
+**Protocol block:**
+
+```md
+<!-- TAKU_LEARNINGS_PROTOCOL:START -->
+## Taku Learnings
+
+If `.taku/learnings/{project-slug}.jsonl` exists, consult it before non-trivial planning, implementation, review, or debugging. Treat matching entries as context, not hard rules.
+
+Do not create, edit, or prune learnings unless the user explicitly invokes `/taku-reflect`. Only stable repeated preferences should be promoted into project-level instructions.
+<!-- TAKU_LEARNINGS_PROTOCOL:END -->
+```
+
+**Rules:**
+
+- This is a bootstrap protocol, not a promotion of specific learnings
+- The block must be identical in every file it is injected into
+- Detect existing installation by the `TAKU_LEARNINGS_PROTOCOL` markers
+- Never inject automatically; show a `Project Bootstrap Suggestion` and wait for explicit user confirmation before editing `AGENTS.md` or `CLAUDE.md`
 
 ### Output Format
 
@@ -100,6 +137,7 @@ When running learn mode, organize results as:
 - **Recorded** — learnings added or updated in this reflect run
 - **Relevant Existing Learnings** — prior entries relevant to the current work
 - **Promotion Suggestions** — suggestions only; do not upgrade anything automatically
+- **Project Bootstrap Suggestion** — suggest installing the Taku learnings protocol in `AGENTS.md` and/or `CLAUDE.md` when the project has not been bootstrapped yet
 
 ---
 
@@ -181,6 +219,8 @@ Keep upgrades narrow. Only suggest these two:
    - Suggestion: `This pattern keeps recurring. Suggest codifying it as a skill.`
    - Rule: ask the user whether to proceed before loading `references/writing-skills.md`
 
+Bootstrap is separate from promotion. Installing the Taku learnings protocol in `AGENTS.md` or `CLAUDE.md` only makes the knowledge base discoverable; it must not be used to smuggle concrete learnings past the promotion rules above.
+
 ---
 
 ## Anti-Rationalization
@@ -209,3 +249,7 @@ Keep upgrades narrow. Only suggest these two:
 **Auto-upgrading without consent.** A repeated preference was detected and silently written into a project rule file. The user disagreed with the wording and had to undo it.
 
 *Prevention:* Promotion Suggestions are suggestions only. Upgrades to `AGENTS.md`, `CLAUDE.md`, or a new skill always require explicit user confirmation first.
+
+**Bootstrap drift between `AGENTS.md` and `CLAUDE.md`.** One file mentioned `.taku/learnings` and the other did not. Different agents got different behavior depending on which instruction file they loaded.
+
+*Prevention:* When both files exist, suggest injecting the exact same `TAKU_LEARNINGS_PROTOCOL` block into both. If only one file is missing the block later, patch only the missing file instead of rewriting both.
