@@ -12,7 +12,7 @@ description: >
 
 # Taku — Cross-Platform Development Sprint Framework
 
-A structured sprint pipeline: **Think → Plan → Build → Review → Test → Reflect**.
+A structured sprint pipeline: **Think → Plan → Build → Review → Verify → Reflect**.
 
 This file is the **orchestrator**. It doesn't do the work — it determines which skills to invoke, in what order, based on project state and task type. Every sub-skill is a focused, composable file under `skills/`.
 
@@ -72,9 +72,9 @@ Before routing, classify the task. This determines which phases to run.
 
 | Type | Trigger Phases | Typical Request |
 |------|---------------|-----------------|
-| **feature** | THINK → PLAN → BUILD → REVIEW → TEST | "Build me a user dashboard" |
-| **bugfix** | TEST (debug) → BUILD → REVIEW | "The login form doesn't work" |
-| **refactor** | REVIEW → BUILD → TEST | "Clean up the auth module" |
+| **feature** | THINK → PLAN → BUILD → REVIEW → VERIFY | "Build me a user dashboard" |
+| **bugfix** | DEBUG → BUILD → REVIEW → VERIFY | "The login form doesn't work" |
+| **refactor** | REVIEW → BUILD → VERIFY | "Clean up the auth module" |
 | **hotfix** | BUILD (skip review for critical) | "Production is down, fix it now" |
 | **review** | REVIEW only | "Review my PR" |
 | **idea** | THINK only | "I have an idea for..." |
@@ -107,12 +107,12 @@ The user can override the auto-selected mode at any time.
 - **THINK:** `expand` = deep exploration, `hold` = skip THINK (bugfix)
 - **PLAN:** `expand` = run all reviews, `hold` = skip reviews, write plan directly
 - **BUILD:** `expand` = suggest improvements, `hold` = implement exactly, no suggestions
-- **REVIEW/TEST:** All modes = full discipline (quality is non-negotiable)
+- **REVIEW/VERIFY:** All modes = full discipline (quality is non-negotiable)
 - **REFLECT:** User-invoked only. `expand` = deep retro, `hold` = targeted learn capture
 
 ### Relevant Learnings Recall
 
-If `.taku/learnings/{project-slug}.jsonl` exists, search it after task classification and again before PLAN, BUILD, REVIEW, and TEST.
+If `.taku/learnings/{project-slug}.jsonl` exists, search it after task classification and again before PLAN, BUILD, REVIEW, and VERIFY.
 
 - Only read existing learnings. Do not create, edit, or prune learnings outside `/taku-reflect`.
 - Filter by current task type plus simple keyword overlap from the user's request or active module.
@@ -246,20 +246,20 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 └──────────────┬──────────────────────┘
                │
                ▼
-         (auto-route to TEST)
+         (auto-route to VERIFY)
 ```
 
 **Rules:**
 - `/taku-review` is always run — it's the minimum
-- **Critical findings block progress.** Fix them before moving to TEST.
+- **Critical findings block progress.** Fix them before moving to VERIFY.
 - Important findings: fix if possible, note if not
-- After all reviews pass, **automatically route to TEST**
+- After all reviews pass, **automatically route to VERIFY**
 
-**→ On completion: auto-route to TEST phase**
+**→ On completion: auto-route to VERIFY phase**
 
-### TEST Phase
+### VERIFY Phase
 
-**Entry:** Code reviewed. Ready for testing.
+**Entry:** Code reviewed. Ready for fresh verification.
 
 ```
 ┌─────────────────────────────────────┐
@@ -274,15 +274,16 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
            yes │       │ no
                ▼       ▼
 ┌──────────────────┐  ┌─────────────────────────────┐
-│ /taku-debug      │  │ All tests pass              │
+│ /taku-debug      │  │ All checks pass             │
 │ Root cause       │  │ → sprint complete           │
 │ investigation    │  │   reflect remains optional  │
 └──────────────────┘  └─────────────────────────────┘
 ```
 
 **Rules:**
-- Run the project's full test suite
-- **If tests fail:** invoke `/taku-debug` for systematic root cause investigation
+- VERIFY is an orchestrator-owned gate. There is no separate `/taku-test` skill.
+- Run the project's full test suite plus any required lint, typecheck, build, or smoke checks for the current repo.
+- **If verification fails:** invoke `/taku-debug` for systematic root cause investigation
 - **Iron Law:** No completion claims without fresh verification evidence. "It should work" is not a completion statement. Run the command, read the output, then claim the result.
 - `/taku-debug` is also invoked on-demand at any phase when encountering unexpected behavior
 
@@ -310,7 +311,7 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 ```
 
 **Rules:**
-- REFLECT is user-invoked. Do not auto-run it after TEST or at sprint completion.
+- REFLECT is user-invoked. Do not auto-run it after VERIFY or at sprint completion.
 - Learn mode records only user-approved learnings.
 - Retro mode runs weekly or on explicit request (heavier — full analysis).
 - Existing learnings may be auto-recalled in later phases as context, but only `/taku-reflect` may create or update long-term learnings.
@@ -319,7 +320,7 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 
 ## 4. Auto-Progression Rules
 
-The sprint **auto-progresses** between phases. The agent should NOT wait for the user to say "now review" or "now test" — it should proactively move to the next phase.
+The sprint **auto-progresses** between phases. The agent should NOT wait for the user to say "now review" or "now verify" — it should proactively move to the next phase.
 
 ### Execution Autonomy Policy
 
@@ -337,7 +338,7 @@ Do not ask when:
 - grouping tasks into execution waves
 - routing from PLAN to BUILD after approved design + self-reviewed plan
 - starting planned verification, review, or test steps
-- moving from BUILD to REVIEW or REVIEW to TEST under normal flow
+- moving from BUILD to REVIEW or REVIEW to VERIFY under normal flow
 
 ### Auto-Progress Triggers
 
@@ -346,8 +347,8 @@ Do not ask when:
 | THINK | PLAN | User approves DESIGN.md |
 | PLAN | BUILD | PLAN.md written and self-reviewed |
 | BUILD | REVIEW | All tasks in PLAN.md marked DONE |
-| REVIEW | TEST | All Critical findings fixed |
-| TEST | sprint complete | Test suite passes |
+| REVIEW | VERIFY | All Critical findings fixed |
+| VERIFY | sprint complete | Verification passes |
 
 ### Pause Points (require user action)
 
@@ -362,7 +363,7 @@ Do not ask when:
 | Exception | Action |
 |-----------|--------|
 | Review finds Critical issues | Fix in BUILD, re-run REVIEW (loop max 3 times, then ask user) |
-| Tests fail | Invoke /taku-debug, fix root cause, re-run tests (loop max 3 times, then ask user) |
+| Verification fails | Invoke /taku-debug, fix root cause, re-run verification (loop max 3 times, then ask user) |
 | Build BLOCKED | Report what's blocking, ask user for context |
 | Build NEEDS_CONTEXT | Answer questions, re-dispatch |
 | 3 consecutive phase loops | Stop, present status to user, ask for direction |
@@ -382,7 +383,7 @@ Current phase: BUILD (3/6 tasks complete)
   ✓ planning — PLAN.md written (8 tasks)
   → building — in progress (task 4: user authentication)
   ○ review — pending
-  ○ test — pending
+  ○ verify — pending
   ○ reflect — optional
 
 Artifacts:
@@ -406,18 +407,19 @@ This is the complete sequence for a greenfield feature with all capabilities ava
           → PLAN.md
         → /taku-build (agent-chosen sequential / parallel / hybrid, TDD enforced)
           → /taku-review
-            → /taku-debug (if tests fail)
-              → sprint complete
-                → /taku-reflect (only if user asks)
+            → verification gate
+              → /taku-debug (if verification fails)
+                → sprint complete
+                  → /taku-reflect (only if user asks)
 ```
 
 **Shortcuts by task type:**
 
 | Type | Flow |
 |------|------|
-| bugfix | `/taku-debug` → `/taku-build` → `/taku-review` |
-| hotfix | `/taku-build` (skip review for urgency) |
-| refactor | `/taku-review` → `/taku-build` → `/taku-review` |
+| bugfix | `/taku-debug` → `/taku-build` → `/taku-review` → VERIFY |
+| hotfix | `/taku-build` → VERIFY (skip review only for urgency) |
+| refactor | `/taku-review` → `/taku-build` → `/taku-review` → VERIFY |
 | review | `/taku-review` |
 | idea | `/taku-think` (Explore mode) → (ask user if they want to continue) |
 
@@ -431,7 +433,7 @@ This is the complete sequence for a greenfield feature with all capabilities ava
 | `/taku-plan` | PLAN | Scope review → design review → write plan |
 | `/taku-build` | BUILD | Agent-chosen sequential / parallel / hybrid execution with wave visibility, TDD enforced |
 | `/taku-review` | REVIEW | Code review with auto-fix |
-| `/taku-debug` | TEST | Root cause investigation |
+| `/taku-debug` | VERIFY | Root cause investigation after verification fails or behavior is broken |
 | `/taku-reflect` | REFLECT | Learn + retro + write skill |
 
 ---

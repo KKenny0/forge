@@ -1,16 +1,26 @@
 ---
 name: taku-debug
 description: >
-  Use when encountering any bug, test failure, or unexpected behavior — systematic
-  root cause investigation with 4 phases. Triggers on "debug this", "fix this bug",
-  "why is this broken", "investigate this error", "it was working yesterday", or
-  any troubleshooting where the cause is unknown. ALWAYS invoke this skill instead
-  of proposing fixes directly.
+  Use when verification fails or when encountering any bug or unexpected behavior
+  whose cause is not yet known. Systematic root cause investigation with 4 phases.
+  Triggers on "debug this", "fix this bug", "why is this broken", "investigate this
+  error", "it was working yesterday", or after the VERIFY phase fails. Do not use
+  this skill as a generic "run tests" wrapper; use it when troubleshooting is required.
 ---
 
 # taku-debug — 4-Phase Root Cause Investigation
 
 Random fixes create new bugs. Systematic investigation finds root causes. This skill merges the best of Superpowers' systematic debugging with gstack's investigate workflow into a unified 4-phase process.
+
+## When to Use This Skill
+
+Use `taku-debug` when:
+
+- the VERIFY phase fails and the failure path is not yet understood
+- the user reports broken behavior, a regression, or an intermittent issue
+- you need to explain why something is failing before proposing the fix
+
+Do not use `taku-debug` just to run routine verification. Run the repo's normal checks first. Enter this skill when those checks fail or when production behavior is already broken.
 
 ## The Iron Law
 

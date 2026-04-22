@@ -13,7 +13,7 @@
 Taku is a structured development workflow for coding agents. It turns vague prompts and overconfident code generation into a repeatable sprint:
 
 ```text
-Think -> Plan -> Build -> Review -> Test -> Reflect
+Think -> Plan -> Build -> Review -> Verify -> Reflect
 ```
 
 This repository is the current `v0.2.0` skill pack. It includes:
@@ -46,7 +46,7 @@ Instead of one giant prompt, Taku gives the agent a sprint structure:
 - **Plan** before touching code in non-trivial work
 - **Build** against explicit tasks, with TDD, agent-owned mode selection, and optional wave-based parallelism
 - **Review** against the actual diff, not hand-wavy intent
-- **Test** by investigating root cause instead of thrashing
+- **Verify** with fresh evidence, then debug the root cause instead of thrashing when checks fail
 - **Reflect** only when there is something worth preserving
 
 The result is a workflow that feels closer to a strong engineering lead than a code autocomplete tool.
@@ -61,7 +61,7 @@ The repository has been simplified around six entry skills:
 | Plan | `/taku-plan` | Scope review, architecture review, UI design review, then executable `PLAN.md` |
 | Build | `/taku-build` | Agent-chosen sequential / parallel / hybrid execution with TDD, wave visibility, and optional worktree isolation |
 | Review | `/taku-review` | Diff-based code review with scope drift checks and fix-first posture |
-| Test | `/taku-debug` | 4-phase root cause investigation for bugs, regressions, and failures |
+| Verify | `/taku-debug` | Verification gate plus 4-phase root cause investigation when checks fail or behavior is broken |
 | Reflect | `/taku-reflect` | Learning capture, retro, and skill codification when explicitly invoked |
 
 This is not a bag of unrelated prompts. The skills are designed to hand work off from one phase to the next.
@@ -117,9 +117,15 @@ That means Taku can stay tight for small changes, accelerate larger sprints, and
 - missing error handling
 - scope drift between intent and delivery
 
-### 5. It forces debugging discipline
+### 5. It keeps verification and debugging distinct
 
-The test phase is represented by `/taku-debug`, because in real projects the hard part is rarely "run more tests". The hard part is finding the concrete failure path.
+Taku's fifth phase is a verification gate, not a second planning phase and not a vague "do some QA" instruction. The orchestrator owns the act of running the required checks. `/taku-debug` exists for the branch where those checks fail or the behavior is already broken.
+
+That keeps the workflow honest:
+
+- passing verification does not require a separate `/taku-test` skill
+- failing verification immediately routes into `/taku-debug`
+- the debug skill stays focused on root cause investigation instead of generic test running
 
 Taku's debug flow is evidence-first:
 
@@ -149,7 +155,7 @@ Taku/
 │   ├── plan/
 │   ├── build/
 │   ├── review/
-│   ├── test/
+│   ├── debug/
 │   └── reflect/
 ├── platform/
 │   └── openclaw.md
@@ -184,14 +190,14 @@ Expose each phase as its own slash command:
 
 ```bash
 # macOS / Linux
-for phase in think plan build review test reflect; do
+for phase in think plan build review debug reflect; do
   ln -s ~/.claude/skills/taku/skills/$phase ~/.claude/skills/taku-$phase
 done
 ```
 
 ```powershell
 # Windows PowerShell
-foreach ($phase in @("think","plan","build","review","test","reflect")) {
+foreach ($phase in @("think","plan","build","review","debug","reflect")) {
   New-Item -ItemType Junction `
     -Path "$env:USERPROFILE\.claude\skills\taku-$phase" `
     -Target "$env:USERPROFILE\.claude\skills\taku\skills\$phase"
@@ -206,6 +212,15 @@ Recommended entry points:
 - `/taku-review` before shipping
 - `/taku-debug` when something breaks
 - `/taku-reflect` when a pattern is worth saving
+
+### Migration Note
+
+Older repo layouts used `skills/test/`, which caused two problems:
+
+- the installed slash command could become `/taku-test` even though the actual skill name was `taku-debug`
+- the phase semantics blurred verification and debugging into one label
+
+The layout now uses `skills/debug/`. If you installed an older copy, recreate the symlink or junction so it points at `skills/debug/` and exposes `/taku-debug`.
 
 ### OpenClaw
 
