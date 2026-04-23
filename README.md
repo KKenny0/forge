@@ -60,7 +60,7 @@ The repository has been simplified around six entry skills:
 | Phase | Command | Current focus |
 |------|------|------|
 | Think | `/taku-think` | Adaptive design thinking with Quick, Design, and Explore modes |
-| Plan | `/taku-plan` | Scope review, architecture review, UI design review, then executable `PLAN.md` |
+| Plan | `/taku-plan` | Scope review, architecture review, UI design review, then spec-based `PLAN.md` with dependency graph and execution hints |
 | Build | `/taku-build` | Agent-chosen sequential / parallel / hybrid execution with TDD, wave visibility, and optional worktree isolation |
 | Review | `/taku-review` | Diff-based code review with scope drift checks and fix-first posture |
 | Verify | `/taku-debug` | Verification gate plus 4-phase root cause investigation when checks fail or behavior is broken |
@@ -87,9 +87,12 @@ You get rigor when it matters, and less ceremony when it does not.
 - scope review before implementation
 - architecture review before code spreads across modules
 - UI design review only when there is actually UI
-- tasks small enough to execute and verify
+- spec-based tasks with dependency annotations and TDD anchors
+- execution hints that advise the build agent on mode and wave grouping
 
-The goal is not a pretty plan. The goal is a plan the agent can actually land.
+Review artifacts (scope assessment, architecture diagrams, edge cases) go to `DESIGN.md`. `PLAN.md` stays pure execution content — goal, tasks, dependency graph. The build agent reads the plan's contract header and knows exactly what's required vs. optional.
+
+The goal is not a pretty plan. The goal is a plan the agent can actually land — and parallelize.
 
 ### 3. It makes build execution explicit
 

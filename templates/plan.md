@@ -1,39 +1,73 @@
 # Implementation Plan: {PLAN_NAME}
 
-> **Date:** {YYYY-MM-DD}
-> **Design:** [DESIGN.md]({path/to/DESIGN.md})
-> **Status:** In Progress
+> **For agentic workers:** Use `/taku-build` to implement this plan. The build agent should choose sequential, parallel, or hybrid execution unless the user explicitly overrides it.
+>
+> **Review context:** Scope and architecture reviews are in `DESIGN.md`. This document is execution-only.
+>
+> **Build Agent Contract:**
+> - **Required:** Goal, Tech Stack, Execution Hints (if present), all Tasks (Depends on + Spec + Files)
+> - **Optional:** Architecture details (in DESIGN.md), review artifacts (in DESIGN.md)
+> - **Skip during execution:** Scope review, architecture review sections (already in DESIGN.md)
+
+**Goal:** {One sentence}
+
+**Architecture:** {2-3 sentences}
+
+**Tech Stack:** {Key technologies}
 
 ---
 
-## Tasks
+## Execution Hints
+
+**Suggested mode:** Sequential | Parallel | Hybrid
+
+**Wave 1** — {Wave purpose}
+- Task 1: {short name}
+- Task 2: {short name}
+
+**Wave 2** — {Wave purpose}
+- Task 3: {short name}
+- Task 4: {short name}
+
+---
 
 ### Task 1: {TASK_NAME}
 
-**Complexity:** Low / Medium / High
-**Depends on:** None / Task N
-**Files to modify:**
-- `{exact/path/to/file}`
+**Depends on:** none
 
-**Test to write:**
-```{language}
-{complete test code — no placeholders}
-```
+**Files:**
+- Create: `{exact/path/to/file}`
+- Modify: `{exact/path/to/existing/file}:{line_range}`
+- Test: `{tests/exact/path/to/test}`
 
-**Implementation:**
-```{language}
-{complete implementation code — no placeholders}
-```
+**Spec:**
 
-**Verification:**
-- Run: `{exact command}`
-- Expected: `{exact expected output}`
+{What to build — describe behavior, contracts, and key assertions.}
+
+Test that `{function_name}()`:
+- returns {expected} when {condition}
+- handles {edge case} by {behavior}
+- raises {error} when {invalid input}
+
+Edge cases: {empty input, concurrent access, boundary values}
+
+**TDD anchor:** `{tests/path/test.py}::test_specific_behavior`
 
 ---
 
 ### Task 2: {TASK_NAME}
 
-...
+**Depends on:** Task 1
+
+**Files:**
+- Create: `{exact/path/to/file}`
+- Test: `{tests/exact/path/to/test}`
+
+**Spec:**
+
+{What to build}
+
+**TDD anchor:** `{tests/path/test.py}::test_name`
 
 ---
 
@@ -45,25 +79,12 @@ Task 1 → Task 3 ↗
 Task 5 (independent)
 ```
 
-Tasks with no dependencies can run in parallel. Dependencies are directional (A → B means A must complete before B starts).
-
 ## Task Summary
 
-| # | Task | Complexity | Depends On | Status |
+| # | Task | Depends On | TDD Anchor | Status |
 |---|------|-----------|------------|--------|
-| 1 | {name} | Low | — | Pending |
-| 2 | {name} | Medium | Task 1 | Pending |
-| 3 | {name} | High | Task 1 | Pending |
-| 4 | {name} | Medium | Task 2, 3 | Pending |
-| 5 | {name} | Low | — | Pending |
-
-## Self-Review Checklist
-
-Before starting implementation, verify:
-
-- [ ] Every task has exact file paths (no "the relevant file")
-- [ ] No placeholders or TBDs in any code block
-- [ ] Every task has a verification step with expected output
-- [ ] Test steps come before implementation steps (TDD)
-- [ ] Dependencies between tasks are explicit
-- [ ] No task is larger than 5 minutes of focused work
+| 1 | {name} | — | {test} | Pending |
+| 2 | {name} | Task 1 | {test} | Pending |
+| 3 | {name} | Task 1 | {test} | Pending |
+| 4 | {name} | Task 2, 3 | {test} | Pending |
+| 5 | {name} | — | {test} | Pending |
