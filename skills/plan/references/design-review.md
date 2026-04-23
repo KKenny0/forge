@@ -148,7 +148,7 @@ For dimensions scoring 8+, a brief note is fine. For dimensions below 8, the fix
 
 ## Completion
 
-Append a `## Design Review` section to the design doc with the scorecard and all fixes.
+Append a `## Design Review` section to `DESIGN.md` with the scorecard and all fixes. Do NOT put design review output in `PLAN.md` — the plan document is execution-only.
 
 If overall score is 8+: "Design is implementation-ready."
 

@@ -29,6 +29,8 @@ Announce which step you're starting from.
 
 Run when the design hasn't been through strategic and technical review. Catches scope mistakes (cheap to fix now, expensive later) and architecture gaps before code is written.
 
+**Output destination:** Review artifacts (scope assessment, architecture diagram, edge cases, failure modes, test mapping) are appended to `DESIGN.md`, NOT to `PLAN.md`. The plan document is pure execution content.
+
 Full process in `references/plan-review.md`. Load it and follow the instructions.
 
 Quick summary:
@@ -44,6 +46,8 @@ If review produces critical gaps → stop and address them with the user before 
 
 Only for projects with UI/UX components. Skip entirely for CLI, API, backend, infra.
 
+**Output destination:** Design review scores and fixes are appended to `DESIGN.md`, NOT to `PLAN.md`.
+
 Scores 9 dimensions (aesthetic, typography, color, spacing, layout, motion, responsiveness, accessibility, content hierarchy). Each gets 0-10, with specific fixes for anything below 8.
 
 Full process in `references/design-review.md`. Load it and follow the instructions.
@@ -53,6 +57,16 @@ Skip when: no UI, or project uses an existing design system without customizatio
 ---
 
 ## Step 3: Write the Plan
+
+### Template Selection
+
+Use `DEPTH_TIER` (set by the orchestrator's pre-flight) to pick the plan template:
+
+| Tier | Criteria | Template |
+|------|----------|----------|
+| **Lightweight** | <50 files OR single-file change (1 dir touched) | Minimal — goal, files, spec per task |
+| **Standard** | 50-500 files, moderate scope | Full template with Execution Hints |
+| **Deep** | >500 files OR cross-cutting change (3+ dirs touched) | Standard + mandatory architecture diagram in header |
 
 ### Prerequisites
 
@@ -71,15 +85,11 @@ Before writing tasks, map every file that will be created or modified:
 
 ### Task Granularity
 
-Each step is one action (2-5 minutes):
+Each task is a coherent unit of work — one responsibility, one set of files, one TDD anchor. The TDD cycle (write test → verify fail → implement → verify pass → commit) is enforced by `references/tdd.md` at build time, not repeated in every task.
 
-- "Write the failing test" → step
-- "Run it to verify it fails" → step
-- "Write minimal implementation" → step
-- "Run tests to verify pass" → step
-- "Commit" → step
+Instead of enumerating every TDD step per task, define WHAT the task must deliver: behavior, contracts, key assertions, and edge cases. The build agent reads the spec and applies TDD against it.
 
-**Why fine-grained steps:** A step that says "Implement the feature and write tests" is unverifiable. Fine-grained steps make each verification explicit: write test → verify it fails → implement → verify it passes → commit.
+**Why spec over steps:** A 5-task plan with full TDD steps per task produces 25 checklist items where ~15 are boilerplate. Specs keep the plan focused on what matters — what to build and how to verify it — while the build agent handles the how.
 
 ### Plan Document Header
 
@@ -89,6 +99,13 @@ Every plan starts with:
 # [Feature Name] Implementation Plan
 
 > **For agentic workers:** Use `/taku-build` to implement this plan. The build agent should choose sequential, parallel, or hybrid execution unless the user explicitly overrides it.
+>
+> **Review context:** Scope and architecture reviews are in `DESIGN.md`. This document is execution-only.
+>
+> **Build Agent Contract:**
+> - **Required:** Goal, Tech Stack, Execution Hints (if present), all Tasks (Depends on + Spec + Files)
+> - **Optional:** Architecture details (in DESIGN.md), review artifacts (in DESIGN.md)
+> - **Skip during execution:** Scope review, architecture review sections (already in DESIGN.md)
 
 **Goal:** [One sentence]
 
@@ -99,58 +116,88 @@ Every plan starts with:
 ---
 ```
 
+### Execution Hints
+
+*(Standard and Deep tiers only — skip for Lightweight)*
+
+After the header and before tasks, include an optional execution hints section. The plan phase understands the dependency graph best — this section advises the build agent on execution mode and wave grouping. The build agent owns the final decision and may override.
+
+```markdown
+## Execution Hints
+
+**Suggested mode:** [Sequential | Parallel | Hybrid]
+
+**Wave 1** — [Wave purpose]
+- Task 1: [short name]
+- Task 2: [short name]
+
+**Wave 2** — [Wave purpose]  *(if applicable)*
+- Task 3: [short name]
+- Task 4: [short name]
+
+**Wave 3** — [Integration]  *(if applicable)*
+- Task 5: [short name]
+```
+
+Omit this section entirely for plans with 1-2 tightly coupled tasks (sequential is obvious). Include it when:
+- 3+ tasks exist and some are independent
+- The dependency graph reveals parallelization opportunities
+- Hybrid wave execution is the likely best choice
+
+### Lightweight Template
+
+For Lightweight tier only. Use this instead of the full Plan Document Header + Task Structure:
+
+```markdown
+# [Feature Name] Plan
+
+**Goal:** [One sentence]
+**Files:** [List of files to create/modify]
+
+### Task 1: [Name]
+**Depends on:** none
+**Files:** [paths]
+**Spec:** [What to build, key assertions, edge cases]
+**TDD anchor:** [Test file + test name]
+```
+
 ### Task Structure
 
 ````markdown
 ### Task N: [Component Name]
+
+**Depends on:** [Task M, ...] or `none`
 
 **Files:**
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
 - Test: `tests/exact/path/to/test.py`
 
-- [ ] **Step 1: Write the failing test**
+**Spec:**
 
-```python
-def test_specific_behavior():
-    result = function(input)
-    assert result == expected
-```
+[What to build — describe behavior, contracts, and key assertions.]
 
-- [ ] **Step 2: Run test to verify it fails**
+Test that `function_name()`:
+- returns [expected] when [condition]
+- handles [edge case] by [behavior]
+- raises [error] when [invalid input]
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
+Edge cases: [empty input, concurrent access, boundary values, etc.]
 
-- [ ] **Step 3: Write minimal implementation**
-
-```python
-def function(input):
-    return expected
-```
-
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
-```
+**TDD anchor:** `tests/path/test.py::test_specific_behavior`
 ````
+
+When the contract is non-obvious or the implementation approach is genuinely hard to describe, include a code sketch as part of the spec. Code blocks are optional context, not mandatory scaffolding.
 
 ### No Placeholders — Ever
 
 These are plan failures:
 
 - "TBD", "TODO", "implement later", "fill in details"
-- "Add appropriate error handling" / "add validation" / "handle edge cases"
-- "Write tests for the above" (without actual test code)
-- "Similar to Task N" (repeat the code — tasks may be read out of order)
-- Steps describing what to do without showing how (code blocks required)
+- "Add appropriate error handling" / "add validation" / "handle edge cases" — without specifying what errors, what validation, which cases
+- "Write tests for the above" (without describing what the tests verify)
+- "Similar to Task N" (repeat the spec — tasks may be read out of order)
+- Specs that describe intent without defining verifiable behavior
 - References to types, functions, or methods not defined in any task
 
 ### Self-Review Checklist
@@ -160,8 +207,8 @@ After writing the complete plan, run this against the design doc:
 1. **Spec coverage:** Can you point every requirement to a specific task? List any gaps.
 2. **Placeholder scan:** Search for TBD, TODO, "appropriate", "similar to". Fix them.
 3. **Type consistency:** Do types, method signatures, and names match across tasks?
-4. **TDD ordering:** Does every code step have a preceding test step?
-5. **Verification completeness:** Does every task end with a verifiable command and expected output?
+4. **Dependency integrity:** Every `Depends on` reference points to a real task. No circular dependencies. Tasks that can run in parallel have no mutual dependency.
+5. **Spec verifiability:** Every task's spec describes concrete, testable behavior — not vague intent.
 
 Find issues? Fix inline.
 
@@ -202,7 +249,7 @@ Only stop before BUILD if the plan changed scope materially, introduced a costly
 
 **TDD ordering violated — code step before test step.** The implementer wrote the function, then wrote tests that pass against it — proving nothing.
 
-*Prevention:* Self-review checklist item 4. Every code step must have a preceding test step.
+*Prevention:* TDD is enforced by `references/tdd.md` at build time, not by the plan. Each task's spec defines testable behavior, and the build agent applies the write-test-first cycle automatically.
 
 **Plan exceeds 15 tasks / 130+ steps.** Context limits were hit at task 14. The second half produced degraded quality.
 

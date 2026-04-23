@@ -19,8 +19,10 @@ Execute PLAN.md tasks. Choose the execution mode yourself and continue immediate
 Before starting implementation:
 
 1. **PLAN.md exists?** If not, route to `/taku-plan`.
-2. **Worktree needed?** If the feature needs isolation from current workspace, set up a worktree first. Full process in `references/worktrees.md`.
-3. **Load TDD rules.** All code follows test-first discipline. Full cycle in `references/tdd.md`. The iron law: no production code without a failing test first.
+2. **Read the Build Agent Contract.** If PLAN.md has a `Build Agent Contract` block in its header, follow it: read Required fields first, reference Optional fields from `DESIGN.md` as needed, skip review artifacts.
+3. **Check Execution Hints.** If PLAN.md has an `Execution Hints` section, use it as a starting recommendation for mode selection. You own the final decision and may override.
+4. **Worktree needed?** If the feature needs isolation from current workspace, set up a worktree first. Full process in `references/worktrees.md`.
+5. **Load TDD rules.** All code follows test-first discipline. Full cycle in `references/tdd.md`. The iron law: no production code without a failing test first.
 
 ---
 

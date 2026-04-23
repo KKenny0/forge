@@ -81,7 +81,7 @@ Proposed changes: [specific items]
 Risk if ignored: [what happens without this review]
 ```
 
-**Step 5: Document.** Append `## Plan Review — Scope` section to the design doc.
+**Step 5: Document.** Append `## Plan Review — Scope` section to `DESIGN.md`. Do NOT put review output in `PLAN.md` — the plan document is execution-only.
 
 ---
 
@@ -167,6 +167,6 @@ Any failure with no test AND no error handling AND silent UX = critical gap.
 
 ## Completion
 
-Update the plan with findings from both reviews. Append sections to the design doc.
+Append review findings to `DESIGN.md` under `## Plan Review — Scope` and `## Plan Review — Architecture` sections. Do NOT write review content into `PLAN.md`.
 
 Status: DONE when reviews complete and critical gaps addressed. DONE_WITH_CONCERNS if gaps remain but user chose to proceed. BLOCKED if plan is too vague.
