@@ -1,22 +1,20 @@
 ---
 name: taku-think
 description: >
-  Invoke before ANY build request — new feature, component, API, refactor, bug fix,
-  or "build me X". Three adaptive modes: Quick (simple requests → fast alignment,
-  skip heavy process), Design (feature requests → architecture + DESIGN.md), Explore
-  (new ideas → forcing questions before committing). The mode is auto-selected based
-  on request complexity. Hard gate: no code until design is approved. Triggers on
-  "build me", "add a feature", "I have an idea", "should we build", "let's design",
-  "implement", "帮我做", "加个功能", "我有个想法", "建一个", "设计一下", "要不要做",
-  "想想怎么做", "需求分析", or any request that implies writing code. Also handles
-  design system creation. Also use when the user describes what they want built
-  without explicitly saying "build" — if they describe a desired end state, this
-  skill applies. Use before /taku-plan.
+  Clarify ambiguous development requests, new feature ideas, product/design choices,
+  and idea-stage work before planning. Three adaptive modes: Quick (small clear
+  changes → fast alignment), Design (feature requests → architecture + DESIGN.md),
+  Explore (new ideas → forcing questions before committing). Triggers on "add a
+  feature", "I have an idea", "should we build", "let's design", "设计一下",
+  "需求分析", "我有个想法", or when the user describes a desired end state but
+  implementation choices or success criteria are not yet settled. Also handles
+  design system creation. Bug fixes and refactors use the orchestrator's debug or
+  review paths unless they need fresh design decisions.
 ---
 
 # Taku Think — Adaptive Design Thinking
 
-Three modes adapt to request complexity. No ceremony for simple requests. Full rigor for complex ones. Hard gate always: no code until design is approved.
+Three modes adapt to request complexity. No ceremony for simple requests. Full rigor for complex ones. Hard gate always: no implementation until the selected design path is approved.
 
 ## Mode Selection
 
@@ -132,7 +130,7 @@ Scale depth to complexity: a few sentences for moderate changes, a paragraph per
 
 ### Write DESIGN.md
 
-Save the approved design to `DESIGN.md` at the project root. Use the template matching the project's depth-tier (detected in SKILL.md pre-flight; if unknown, use Standard).
+Save the approved design to `DESIGN.md` at the project root. Use `templates/design-doc.md` as the scaffold, then adapt it to the template matching the project's depth-tier (detected in SKILL.md pre-flight; if unknown, use Standard). The skill rules override the template if they differ.
 
 **Lightweight tier** (for small, focused changes):
 

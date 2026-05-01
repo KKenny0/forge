@@ -12,6 +12,15 @@ description: >
 
 Execute PLAN.md tasks. Choose the execution mode yourself and continue immediately.
 
+## Capability Detection
+
+Before choosing the execution mode, determine whether the host supports subagent dispatch.
+
+- If subagents are available: Parallel and Hybrid may dispatch independent tasks to subagents.
+- If subagents are unavailable: keep the same dependency waves, but execute each wave locally and sequentially. Report this as `Subagents: unavailable; using sequential wave execution`.
+
+Never block on missing subagent capability. Degrade the execution shape, keep TDD and reconciliation.
+
 ## Pre-Build Check
 
 Before starting implementation:
@@ -55,6 +64,7 @@ Before execution, announce the schedule in this shape:
 BUILD PREFLIGHT
 - Mode: hybrid
 - Reason: work is best executed in 3 waves
+- Subagents: available
 - Waves:
   - wave-1: [task-slug-a, task-slug-b]
   - wave-2: [task-slug-c, task-slug-d]
@@ -89,7 +99,7 @@ BUILD COMPLETE
 
 ## Parallel Mode
 
-Execute PLAN.md by dispatching subagents. Independent tasks run in parallel, with reconciliation after each wave.
+Execute PLAN.md by dispatching subagents when the host supports it. If not, execute the same independent task waves locally and sequentially, with reconciliation after each wave.
 
 **Announce:** Use the BUILD PREFLIGHT format and show the parallel wave layout.
 
@@ -99,7 +109,7 @@ Execute PLAN.md by dispatching subagents. Independent tasks run in parallel, wit
 Read PLAN.md
     → Parse tasks, build dependency DAG
     → Group tasks into execution waves
-    → Dispatch independent tasks in parallel
+    → Dispatch independent tasks in parallel, or execute wave tasks locally if subagents are unavailable
     → Wait for completion (push-based)
     → Reconcile: check conflicts, run integration tests
     → Dispatch next wave of now-unblocked tasks
@@ -129,7 +139,7 @@ If any file appears in more than one task, mark those tasks as dependent — the
 
 ### Subagent Context Format
 
-Every subagent receives structured context built from the plan:
+When subagents are available, every subagent receives structured context built from the plan:
 
 ```markdown
 ## Task Context
@@ -199,6 +209,7 @@ Use hybrid mode when the plan is best executed in waves.
 
 - Waves themselves run sequentially because later waves depend on earlier ones.
 - Within a wave, independent tasks may run in parallel.
+- If subagents are unavailable, run each wave's tasks locally one after another.
 - Choose hybrid when full parallelism creates too much conflict or uncertainty, but full sequential execution would be unnecessarily slow.
 
 **Announce:** Use the BUILD PREFLIGHT format and show every planned wave with its `wave-slug` and `task-slug` list.
@@ -290,6 +301,7 @@ After all tasks: run full test suite, announce completion, route to REVIEW phase
 - Provide complete context upfront
 - Follow TDD for all code changes
 - Show the chosen mode and execution waves before starting
+- State whether subagents are available; if not, state the sequential wave fallback
 - Keep `wave-slug` and `task-slug` values stable in every progress update
 - Stop and ask when stuck
 

@@ -1,19 +1,19 @@
 ---
 name: taku
-version: 0.2.0
 description: >
-  Invoke for ANY development task — new feature, bug fix, refactor, API endpoint,
-  CLI tool, web app, library, infrastructure, or "build me X". If code will be
-  written, tests will run, or a PR will be created, this is the entry point.
-  Also triggers on "start a sprint", "plan this feature", "review my code",
-  "ship this", "let's think through this idea", "做个XX", "帮我写", "开始开发",
-  "规划一下", "修个bug", "重构一下", or any request that implies
-  building software. Do NOT answer directly — route through the sprint pipeline.
+  Route development tasks through the Taku sprint workflow when the user invokes
+  Taku, asks to start a Taku sprint, or wants structured AI-assisted software
+  delivery. Covers feature planning, implementation, review, verification,
+  debugging, and reflection. Triggers on "taku", "/taku-*", "start a sprint",
+  "use Taku", "plan this feature with Taku", "ship this with Taku", "开始 Taku",
+  "用 Taku", or explicit requests for the Taku workflow.
 ---
 
 # Taku — Cross-Platform Development Sprint Framework
 
 A structured sprint pipeline: **Think → Plan → Build → Review → Verify → Reflect**.
+
+Version: 0.2.0
 
 This file is the **orchestrator**. It doesn't do the work — it determines which skills to invoke, in what order, based on project state and task type. Every sub-skill is a focused, composable file under `skills/`.
 
@@ -33,6 +33,9 @@ Check enhanced capabilities. Store as session state. Missing = skip, don't block
 | Capability | Check | Enables |
 |------------|-------|---------|
 | Image gen | image_generate tool | `/taku-think` design system previews |
+| Subagents | host supports agent dispatch | `/taku-build` true parallel execution |
+
+If subagents are unavailable, store `SUBAGENTS_AVAILABLE=false`. Parallel and hybrid plans still use wave scheduling, but waves execute locally and sequentially.
 
 ### Project State Detection
 
@@ -110,7 +113,7 @@ The user can override the auto-selected mode at any time.
 If `.taku/learnings/{project-slug}.jsonl` exists, search it after task classification and again before PLAN, BUILD, REVIEW, and VERIFY.
 
 - Only read existing learnings. Do not create, edit, or prune learnings outside `/taku-reflect`.
-- Filter by current task type plus simple keyword overlap from the user's request or active module.
+- Use `python3 skills/reflect/scripts/learnings.py search --project-root . --query "<request keywords>" --task-type "<task type>" --keywords "<module,terms>"`.
 - Prefer `high` confidence, then `medium`.
 - Show at most 3-5 items in this format:
 
@@ -122,7 +125,7 @@ RELEVANT LEARNINGS
 
 This recall is context only. It informs planning, implementation, and testing, but it is not a hard rule engine and does not write new long-term memory.
 
-If the project has been bootstrapped by `/taku-reflect`, the same discoverability protocol may also appear in `AGENTS.md` and/or `CLAUDE.md` so non-Taku sessions know to consult `.taku/learnings/...` before non-trivial work.
+If the project has been bootstrapped by `/taku-reflect`, the same optional discoverability protocol may also appear in `AGENTS.md` and/or `CLAUDE.md` so non-Taku sessions are more likely to consult `.taku/learnings/...` before non-trivial work. The JSONL file remains the canonical source.
 
 ---
 
@@ -203,7 +206,7 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 │ TDD enforced (load references/)     │
 │ BUILD PREFLIGHT shows mode + waves  │
 │ 2-stage review per task             │
-│ Dispatches subagents per task       │
+│ Dispatches subagents when available │
 └──────────────┬──────────────────────┘
                │ all tasks done
                ▼
@@ -212,6 +215,7 @@ Each phase has a **specific skill sequence**. Follow the sequence in order. Each
 
 **Rules:**
 - `/taku-build` chooses the execution mode itself: sequential, parallel, or hybrid
+- If subagents are unavailable, parallel and hybrid plans degrade to local sequential wave execution
 - User can override mode at any time
 - Hybrid is wave-based: waves run in order, and independent work inside a wave may run in parallel
 - For hybrid and complex parallel runs, surface execution waves as `wave-slug: [task-slug, ...]`

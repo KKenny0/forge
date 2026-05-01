@@ -1,5 +1,7 @@
 # Implementation Plan: {PLAN_NAME}
 
+> Scaffold for `/taku-plan`. Replace every placeholder before handoff. The skill instructions in `skills/plan/SKILL.md` override this template if they differ.
+>
 > **For agentic workers:** Use `/taku-build` to implement this plan. The build agent should choose sequential, parallel, or hybrid execution unless the user explicitly overrides it.
 >
 > **Review context:** Scope and architecture reviews are in `DESIGN.md`. This document is execution-only.

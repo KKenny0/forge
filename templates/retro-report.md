@@ -1,6 +1,7 @@
 # Retrospective Report Template
 
 > Fill this out after running `/taku-reflect --retro`. One report per retro session.
+> The skill instructions in `skills/reflect/SKILL.md` override this template if they differ.
 
 ## Report Metadata
 

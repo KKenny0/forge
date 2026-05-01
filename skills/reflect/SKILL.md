@@ -1,7 +1,8 @@
 ---
 name: taku-reflect
 description: >
-  User-invoked reflection. Three modes: Learn (record user-approved patterns, pitfalls,
+  User-invoked reflection. Three modes: Learn (script-backed recording, searching,
+  pruning, exporting, and optional bootstrap for user-approved patterns, pitfalls,
   preferences, discoveries), Retro (weekly engineering retrospective with git commit analysis,
   metrics, team breakdowns, trends), and Write Skill (codify recurring learnings into reusable skills).
   Triggers on "what have we learned", "add learning", "show learnings", "weekly retro",
@@ -71,15 +72,33 @@ Confidence meanings: **high** — verified by testing or user confirmation. **me
 - `action` — What future sessions should do
 - `apply_when` — Task types and keywords for later recall (`task_types` + `keywords`)
 
-### Operations
+### Script-Backed Operations
 
-**ADD:** Gather `type` (with confidence suffix), `context`, `learning`, `action`, and a minimal `apply_when` block. Append to JSONL only after the user confirms the learning should be kept.
+Use `scripts/learnings.py` for all learnings file operations. Do not hand-edit `.taku/learnings/*.jsonl` unless the script is unavailable and the user explicitly approves a fallback.
 
-**SEARCH:** `grep -i "QUERY" .taku/learnings/{slug}.jsonl`. Present matches grouped by type.
+**ADD:** Gather `type` (with confidence suffix), `context`, `learning`, `action`, and minimal `apply_when` values. Append only after the user confirms the learning should be kept.
 
-**PRUNE:** Check file existence, contradictions, staleness (30 days). Present each flagged entry: Remove / Keep / Update.
+```bash
+python3 skills/reflect/scripts/learnings.py add --project-root . --type preference/high --context "..." --learning "..." --action "..." --task-types feature,refactor --keywords plan,design
+```
 
-**EXPORT:** Convert to markdown. Offer to append to `AGENTS.md` or `CLAUDE.md` only when the user confirms an upgrade.
+**SEARCH:** Query existing learnings through the script and present matches grouped by type when useful.
+
+```bash
+python3 skills/reflect/scripts/learnings.py search --project-root . --query "plan" --task-type feature --keywords plan,design
+```
+
+**PRUNE:** Use the script to list stale or low-confidence candidates. Present each flagged entry: Remove / Keep / Update. Do not delete automatically.
+
+```bash
+python3 skills/reflect/scripts/learnings.py prune --project-root . --days 30
+```
+
+**EXPORT:** Convert to markdown through the script. Offer to append exported content to `AGENTS.md` or `CLAUDE.md` only when the user confirms an upgrade.
+
+```bash
+python3 skills/reflect/scripts/learnings.py export --project-root .
+```
 
 **Why JSONL over markdown:** JSONL entries can be searched with grep, parsed programmatically, and deduplicated. Markdown learnings files become unstructured text that's hard to query or prune.
 
@@ -87,7 +106,7 @@ Confidence meanings: **high** — verified by testing or user confirmation. **me
 
 Other Taku phases may search existing learnings automatically, but only as context:
 
-- Search after task classification and before PLAN, BUILD, REVIEW, and VERIFY
+- Search with `scripts/learnings.py search` after task classification and before PLAN, BUILD, REVIEW, and VERIFY
 - Filter by task type and simple keyword overlap
 - Prefer `high` confidence, then `medium`
 - Show at most 3-5 relevant learnings
@@ -96,23 +115,23 @@ This recall must never create, edit, or prune learnings. Long-term memory change
 
 ### Project Bootstrap
 
-On the first successful reflect run for a project, check whether the project-level instruction files advertise the Taku learnings protocol.
+On the first successful reflect run for a project, check whether the project-level instruction files advertise the optional Taku learnings protocol.
 
 **When to check:**
 
 - `.taku/` already exists or this reflect run is about to create `.taku/learnings/{project-slug}.jsonl`
-- At least one of `AGENTS.md` or `CLAUDE.md` exists at the project root
-- The target file does not already contain the Taku learnings protocol block
+- Run `python3 skills/reflect/scripts/learnings.py bootstrap-check --project-root .`
+- Treat the result as a suggestion only
 
 **Target selection:**
 
-- If only `AGENTS.md` exists, suggest injecting the protocol there
-- If only `CLAUDE.md` exists, suggest injecting the protocol there
-- If both files exist, suggest injecting the same protocol block into both files so non-Taku sessions do not depend on which project instruction file gets loaded
-- If one file already has the block and the other does not, suggest patching only the missing file
-- If neither file exists, do not create one automatically; just note that no project-level bootstrap target exists yet
+- If only `AGENTS.md` exists, suggest installing the protocol there
+- If only `CLAUDE.md` exists, suggest installing the protocol there
+- If both files exist, suggest installing the same protocol block into both files so non-Taku sessions do not depend on which project instruction file gets loaded
+- If one file already has the block and the other does not, suggest installing only the missing file
+- If neither file exists, do not create one automatically; note that no project-level bootstrap target exists yet
 
-**Protocol block:**
+**Protocol block:** The script owns this exact block.
 
 ```md
 <!-- TAKU_LEARNINGS_PROTOCOL:START -->
@@ -127,9 +146,13 @@ Do not create, edit, or prune learnings unless the user explicitly invokes `/tak
 **Rules:**
 
 - This is a bootstrap protocol, not a promotion of specific learnings
-- The block must be identical in every file it is injected into
+- The JSONL file is the canonical source; `AGENTS.md` and `CLAUDE.md` are optional discovery layers
 - Detect existing installation by the `TAKU_LEARNINGS_PROTOCOL` markers
-- Never inject automatically; show a `Project Bootstrap Suggestion` and wait for explicit user confirmation before editing `AGENTS.md` or `CLAUDE.md`
+- Never install automatically. Show a `Project Bootstrap Suggestion`; if the user explicitly says to install it, run:
+
+```bash
+python3 skills/reflect/scripts/learnings.py bootstrap-install --project-root . --targets AGENTS.md,CLAUDE.md
+```
 
 ### Output Format
 
@@ -145,6 +168,8 @@ When running learn mode, organize results as:
 ## Retro Mode
 
 Analyze what the team shipped, how the work happened, and where to improve. Evidence-based, specific, candid.
+
+Use `templates/retro-report.md` as the report structure. The template is a scaffold; fill it with evidence from the steps below and remove placeholders.
 
 ### Arguments
 

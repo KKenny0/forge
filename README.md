@@ -14,6 +14,8 @@
 >
 > Taku means "to carve and polish jade". The point is not to generate more output. The point is to remove ambiguity until the shape is correct.
 
+> **Status:** Beta workflow. Taku is opinionated and useful for structured agentic coding, but host capabilities differ. When a platform lacks subagents, Taku keeps the same wave plan and executes those waves sequentially.
+
 ## Contents
 
 - [Quick Start](#quick-start)
@@ -22,6 +24,7 @@
 - [Before / After](#before--after)
 - [Installation](#installation)
 - [Repository Layout](#repository-layout)
+- [Validation](#validation)
 - [Who This Is For](#who-this-is-for)
 - [FAQ](#faq)
 - [Inspiration](#inspiration)
@@ -100,8 +103,8 @@ Review artifacts (scope assessment, architecture diagrams, edge cases) go to `DE
 It supports three execution shapes:
 
 - **Sequential** when the task is small or tightly coupled
-- **Parallel** when tasks are independent and subagents can safely split the work
-- **Hybrid** when execution is best expressed as waves: waves run in order, while tasks inside a wave may run in parallel
+- **Parallel** when tasks are independent and the host supports subagents; otherwise waves execute sequentially
+- **Hybrid** when execution is best expressed as waves: waves run in order, while tasks inside a wave may run in parallel when supported
 
 ### 4. It does not confuse "review" with "looks fine to me"
 
@@ -130,7 +133,7 @@ That prevents the most common AI bugfix loop: changing things until the output c
 
 `/taku-reflect` is manual by design. Taku does not continuously write "learnings" just because something happened once.
 
-On the first successful reflect run for a project, it can also suggest bootstrapping a short learnings-discovery note into `AGENTS.md` and/or `CLAUDE.md` so non-Taku sessions know to consult `.taku/learnings/...` before non-trivial work.
+On the first successful reflect run for a project, it can also suggest bootstrapping a short learnings-discovery note into `AGENTS.md` and/or `CLAUDE.md`. That note is optional discovery, not the source of truth; `.taku/learnings/*.jsonl` remains canonical and is managed by `skills/reflect/scripts/learnings.py`.
 
 Only user-approved patterns, pitfalls, preferences, and discoveries get preserved.
 
@@ -207,8 +210,11 @@ Use the same repository as a skill pack, then follow the adapter notes in `platf
 Taku/
 ├── SKILL.md              # Main orchestrator, version 0.2.0
 ├── README.md
-├── DESIGN.md             # Historical design doc; useful context, not the source of truth for latest messaging
 ├── logo.png
+├── agents/
+│   └── openai.yaml       # UI metadata
+├── scripts/
+│   └── validate_taku.py  # Self-checks for this skill pack
 ├── skills/
 │   ├── think/
 │   ├── plan/
@@ -222,10 +228,6 @@ Taku/
 │   ├── design-doc.md
 │   ├── plan.md
 │   └── retro-report.md
-└── promo/
-    ├── wechat-carousel.md
-    ├── x-thread.md
-    └── zhihu-article.md
 ```
 
 ## Platform Status
@@ -235,7 +237,15 @@ Taku/
 | Claude Code | Primary target | Canonical `SKILL.md` format and slash-command workflow |
 | OpenClaw | Adapter included | Tool mapping documented in `platform/openclaw.md` |
 
-The method is cross-platform even when the tooling details differ.
+The method is cross-platform even when the tooling details differ. Subagent-based parallelism is capability-dependent; without it, `/taku-build` preserves wave visibility and runs the wave tasks locally in sequence.
+
+## Validation
+
+Run the built-in self-check before publishing changes:
+
+```bash
+python3 scripts/validate_taku.py
+```
 
 ## Who This Is For
 

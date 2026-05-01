@@ -152,10 +152,7 @@ Every finding gets action.
 Apply the fix directly. Output one line per fix:
 `[AUTO-FIXED] [file:line] Problem → what you did`
 
-Commit auto-fixes atomically:
-```bash
-git add <fixed-files> && git commit -m "fix: code review auto-fixes"
-```
+Do not commit, push, or create PRs. Leave modified files in the worktree for the outer shipping flow.
 
 ### 6b: Batch-ask about Minor findings
 
@@ -173,19 +170,19 @@ RECOMMENDATION: Fix because...
 
 ### 6c: Apply user-approved fixes
 
-Apply fixes where user chose "Fix." Commit separately.
+Apply fixes where user chose "Fix." Do not commit.
 
 ## Step 7: Output Summary
 
 ```
 Pre-Landing Review: N issues (X auto-fixed, Y asked, Z skipped)
   Critical: N  Important: N  Minor: N  Nit: N
+  Modified files: [list]
+  Remaining concerns: [none | list]
   Status: DONE | DONE_WITH_CONCERNS (if Minor findings remain)
 ```
 
 If no issues: "Pre-Landing Review: No issues found. Status: DONE."
-
-If no issues: "Pre-Landing Review: No issues found."
 
 ## Important Rules
 

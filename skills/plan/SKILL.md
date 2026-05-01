@@ -96,6 +96,8 @@ Instead of enumerating every TDD step per task, define WHAT the task must delive
 
 ### Plan Document Header
 
+Use `templates/plan.md` as the starting scaffold for Standard and Deep plans. The rules below override the template if they differ.
+
 Every plan starts with:
 
 ```markdown

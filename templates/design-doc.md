@@ -1,5 +1,7 @@
 # Design Document: {PROJECT_NAME}
 
+> Scaffold for `/taku-think`. Replace every placeholder before approval. The skill instructions in `skills/think/SKILL.md` override this template if they differ.
+>
 > **Date:** {YYYY-MM-DD}
 > **Status:** Draft
 > **Author:** {author}
