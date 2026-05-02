@@ -1,0 +1,114 @@
+[
+  {
+    "id": "rt-01-small-root-cause-bugfix",
+    "title": "Small bug fix with obvious root cause",
+    "prompt": "The CLI crashes when the config file is missing. Fix it so the command reports a clear error and exits non-zero.",
+    "expected_phase_route": ["DEBUG", "BUILD", "REVIEW", "VERIFY"],
+    "expected_artifacts": ["debug report or concise root-cause summary", "regression test", "targeted code fix", "review findings or clean review summary"],
+    "pass_criteria": [
+      "Routes to /taku-debug before proposing a fix.",
+      "Identifies the missing-file path as the root cause, not a generic exception handling problem.",
+      "Adds a failing regression test before implementation, or explicitly notes why the repo lacks a test harness and uses a one-off reproduction.",
+      "Does not create DESIGN.md for this bounded bugfix."
+    ],
+    "observed_failure_mode": "Not yet run; record actual routing, missed checks, or artifact drift after the first manual evaluation."
+  },
+  {
+    "id": "rt-02-ambiguous-feature-think",
+    "title": "Ambiguous feature requiring thinking before planning",
+    "prompt": "Add team notifications so people know when something important happens.",
+    "expected_phase_route": ["THINK", "PLAN", "BUILD", "REVIEW", "VERIFY"],
+    "expected_artifacts": ["DESIGN.md", "PLAN.md", "scope and architecture review notes in DESIGN.md"],
+    "pass_criteria": [
+      "Routes to /taku-think Design mode rather than writing code immediately.",
+      "Asks at most two clarifying questions before presenting a conservative executable design.",
+      "Keeps review artifacts in DESIGN.md and keeps PLAN.md execution-only.",
+      "Defines concrete notification events, delivery rules, and verification criteria before build."
+    ],
+    "observed_failure_mode": "Not yet run; watch for over-broad scope expansion or vague notification semantics."
+  },
+  {
+    "id": "rt-03-compact-plan-scoped-feature",
+    "title": "Scoped feature that should produce a compact plan",
+    "prompt": "Add a --json flag to the existing status command. It should print the same status fields as JSON and keep the current text output as default.",
+    "expected_phase_route": ["THINK", "PLAN", "BUILD", "REVIEW", "VERIFY"],
+    "expected_artifacts": ["mini design or lightweight DESIGN.md section", "compact PLAN.md", "test anchor for JSON output"],
+    "pass_criteria": [
+      "Uses Quick mode or a lightweight design instead of full heavy design ceremony.",
+      "PLAN.md has one or two concrete tasks with exact files and TDD anchors.",
+      "Preserves existing default text behavior in the spec and tests.",
+      "Does not introduce unrelated CLI restructuring."
+    ],
+    "observed_failure_mode": "Not yet run; watch for unnecessary architecture work or missing backward-compatibility tests."
+  },
+  {
+    "id": "rt-04-build-without-subagents",
+    "title": "Build fallback when subagents are unavailable",
+    "prompt": "Implement the approved PLAN.md. This host has no subagent dispatch capability.",
+    "expected_phase_route": ["BUILD", "REVIEW", "VERIFY"],
+    "expected_artifacts": ["BUILD PREFLIGHT", "wave schedule", "BUILD UPDATE entries", "BUILD COMPLETE summary"],
+    "pass_criteria": [
+      "Keeps the plan's wave grouping visible.",
+      "States: Subagents unavailable; using sequential wave execution.",
+      "Runs waves locally in dependency order instead of asking the user to choose a mode.",
+      "Preserves TDD, reconciliation, review, and verification discipline."
+    ],
+    "observed_failure_mode": "Not yet run; watch for blocking on missing subagents or flattening waves into an opaque task list."
+  },
+  {
+    "id": "rt-05-review-no-diff",
+    "title": "Code review request with no diff",
+    "prompt": "Review my current branch before I merge.",
+    "expected_phase_route": ["REVIEW"],
+    "expected_artifacts": ["no-review-needed message"],
+    "pass_criteria": [
+      "Detects the base branch and checks for a diff.",
+      "Stops cleanly if on the base branch or if the branch has no diff.",
+      "Does not invent findings without changed code.",
+      "Does not create or modify files."
+    ],
+    "observed_failure_mode": "Not yet run; watch for hallucinated review comments when no diff exists."
+  },
+  {
+    "id": "rt-06-review-critical-issue",
+    "title": "Code review request with known critical issue",
+    "prompt": "Review this diff. It adds a search endpoint that builds a SQL WHERE clause from a query parameter.",
+    "expected_phase_route": ["REVIEW", "VERIFY"],
+    "expected_artifacts": ["critical finding", "auto-fix or explicit high-confidence fix recommendation", "verification note"],
+    "pass_criteria": [
+      "Flags string-built SQL from user input as Critical.",
+      "Promotes spec mismatches from PLAN.md to Critical when PLAN.md exists.",
+      "Applies a parameterized query fix only when the pattern is clear.",
+      "Does not commit, push, or open a PR during review."
+    ],
+    "observed_failure_mode": "Not yet run; watch for treating SQL injection as informational or mixing review with shipping steps."
+  },
+  {
+    "id": "rt-07-reflect-learning-flow",
+    "title": "Reflect learning add/search/bootstrap flow",
+    "prompt": "Record that this project prefers small PLAN.md files with explicit TDD anchors, then show me matching learnings.",
+    "expected_phase_route": ["REFLECT"],
+    "expected_artifacts": [".taku/learnings/{project-slug}.jsonl entry", "search results", "optional bootstrap suggestion"],
+    "pass_criteria": [
+      "Uses skills/reflect/scripts/learnings.py for add and search operations.",
+      "Asks for user confirmation before writing the learning.",
+      "Stores type, confidence, context, learning, action, and apply_when fields.",
+      "Suggests AGENTS.md or CLAUDE.md bootstrap only when a valid target exists; does not install it automatically."
+    ],
+    "observed_failure_mode": "Not yet run; watch for hand-edited JSONL or automatic bootstrap writes."
+  },
+  {
+    "id": "rt-08-retro-limited-history",
+    "title": "Retro flow with limited git history",
+    "prompt": "Run /taku-reflect --retro for the last 7 days in a repo with only two commits.",
+    "expected_phase_route": ["REFLECT"],
+    "expected_artifacts": ["retro report or concise retro summary", "evidence list from available commits", "gaps explicitly noted"],
+    "pass_criteria": [
+      "Uses available git history as evidence without overstating conclusions.",
+      "Calls out limited history as a confidence constraint.",
+      "Uses templates/retro-report.md when writing a report.",
+      "Does not fabricate shipped work, incidents, or velocity trends."
+    ],
+    "observed_failure_mode": "Not yet run; watch for overconfident retro conclusions from thin evidence."
+  }
+]

@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
+import platform
 import re
 import stat
 import sys
@@ -13,6 +16,16 @@ ALLOWED_FRONTMATTER_KEYS = {"name", "description", "license", "allowed-tools", "
 DESCRIPTION_MAX = 1024
 PROTOCOL_START = "<!-- TAKU_LEARNINGS_PROTOCOL:START -->"
 PROTOCOL_END = "<!-- TAKU_LEARNINGS_PROTOCOL:END -->"
+PHASES = ("think", "plan", "build", "review", "debug", "reflect")
+EVAL_REQUIRED_FIELDS = {
+    "id",
+    "title",
+    "prompt",
+    "expected_phase_route",
+    "expected_artifacts",
+    "pass_criteria",
+    "observed_failure_mode",
+}
 
 
 def default_repo_root() -> Path:
@@ -127,14 +140,8 @@ def check_reflect_script(root: Path, errors: list[str], strict: bool) -> None:
 
 
 def check_agents_metadata(root: Path, errors: list[str]) -> None:
-    paths = [
-        root / "agents" / "openai.yaml",
-        root / "skills" / "think" / "agents" / "openai.yaml",
-        root / "skills" / "plan" / "agents" / "openai.yaml",
-        root / "skills" / "build" / "agents" / "openai.yaml",
-        root / "skills" / "review" / "agents" / "openai.yaml",
-        root / "skills" / "debug" / "agents" / "openai.yaml",
-        root / "skills" / "reflect" / "agents" / "openai.yaml",
+    paths = [root / "agents" / "openai.yaml"] + [
+        root / "skills" / phase / "agents" / "openai.yaml" for phase in PHASES
     ]
     for path in paths:
         if not path.exists():
@@ -149,14 +156,126 @@ def check_trigger_text(root: Path, errors: list[str]) -> None:
         errors.append("skills/think/SKILL.md: trigger description is still too broad")
 
 
+def check_phase_directories(root: Path, errors: list[str]) -> None:
+    for phase in PHASES:
+        phase_dir = root / "skills" / phase
+        if not phase_dir.is_dir():
+            errors.append(f"skills/{phase}: missing phase skill directory")
+            continue
+        if not (phase_dir / "SKILL.md").is_file():
+            errors.append(f"skills/{phase}/SKILL.md: missing phase skill file")
+        if not (phase_dir / "agents" / "openai.yaml").is_file():
+            errors.append(f"skills/{phase}/agents/openai.yaml: missing phase UI metadata")
+
+
+def check_evaluation_suite(root: Path, errors: list[str]) -> None:
+    path = root / "evals" / "real_task_scenarios.json"
+    if not path.exists():
+        errors.append(f"{path.relative_to(root)}: missing real-task evaluation suite")
+        return
+    try:
+        scenarios = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        errors.append(f"{path.relative_to(root)}: invalid JSON: {exc}")
+        return
+    if not isinstance(scenarios, list):
+        errors.append(f"{path.relative_to(root)}: top-level value must be a list")
+        return
+    if len(scenarios) < 6:
+        errors.append(f"{path.relative_to(root)}: expected at least 6 scenarios")
+
+    seen_ids: set[str] = set()
+    covered_phases: set[str] = set()
+    for index, scenario in enumerate(scenarios, start=1):
+        label = f"{path.relative_to(root)} scenario {index}"
+        if not isinstance(scenario, dict):
+            errors.append(f"{label}: scenario must be an object")
+            continue
+        missing = sorted(EVAL_REQUIRED_FIELDS - set(scenario))
+        if missing:
+            errors.append(f"{label}: missing field(s): {', '.join(missing)}")
+        scenario_id = str(scenario.get("id", ""))
+        if not re.match(r"^rt-[0-9]{2}-[a-z0-9-]+$", scenario_id):
+            errors.append(f"{label}: invalid id {scenario_id!r}")
+        if scenario_id in seen_ids:
+            errors.append(f"{label}: duplicate id {scenario_id!r}")
+        seen_ids.add(scenario_id)
+        for field in EVAL_REQUIRED_FIELDS:
+            value = scenario.get(field)
+            if isinstance(value, str) and not value.strip():
+                errors.append(f"{label}: {field} must not be empty")
+            if isinstance(value, list) and not value:
+                errors.append(f"{label}: {field} must not be empty")
+        for list_field in ("expected_phase_route", "expected_artifacts", "pass_criteria"):
+            if list_field in scenario and not isinstance(scenario[list_field], list):
+                errors.append(f"{label}: {list_field} must be a list")
+        route_value = scenario.get("expected_phase_route", [])
+        route = " ".join(route_value) if isinstance(route_value, list) else ""
+        for phase in PHASES:
+            if f"/taku-{phase}" in route or phase.upper() in route:
+                covered_phases.add(phase)
+    missing_phase_coverage = sorted(set(PHASES) - covered_phases)
+    if missing_phase_coverage:
+        errors.append(
+            f"{path.relative_to(root)}: scenarios do not cover phase(s): {', '.join(missing_phase_coverage)}"
+        )
+
+
+def check_python_runtime(errors: list[str]) -> None:
+    if sys.version_info < (3, 8):
+        errors.append(f"Python 3.8+ required; found {platform.python_version()}")
+
+
+def resolve_expected_target(path: Path) -> Path:
+    if path.is_symlink():
+        return path.resolve()
+    return path
+
+
+def check_installation(root: Path, skills_dir: Path, errors: list[str], warnings: list[str]) -> None:
+    check_python_runtime(errors)
+    check_phase_directories(root, errors)
+    check_reflect_script(root, errors, strict=True)
+
+    if platform.system() == "Windows":
+        warnings.append("Windows installs use junctions; this check verifies targets by path existence.")
+
+    repo_install = skills_dir / "taku"
+    if repo_install.exists():
+        if resolve_expected_target(repo_install) != root:
+            warnings.append(f"{repo_install}: exists but does not resolve to this repo ({root})")
+    else:
+        warnings.append(f"{repo_install}: not found; skip if you run Taku from another skill directory")
+
+    for phase in PHASES:
+        command_path = skills_dir / f"taku-{phase}"
+        expected = root / "skills" / phase
+        if not command_path.exists():
+            errors.append(f"{command_path}: missing slash-command link or junction")
+            continue
+        resolved = resolve_expected_target(command_path)
+        if resolved != expected:
+            errors.append(f"{command_path}: resolves to {resolved}, expected {expected}")
+        if not (command_path / "SKILL.md").exists():
+            errors.append(f"{command_path}: target does not expose SKILL.md")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--install", action="store_true", help="also check local slash-command installation")
+    parser.add_argument(
+        "--skills-dir",
+        default=os.environ.get("TAKU_SKILLS_DIR", str(Path.home() / ".claude" / "skills")),
+        help="skills directory to inspect with --install (default: ~/.claude/skills)",
+    )
     args = parser.parse_args(argv)
 
     root = Path(args.root).resolve() if args.root else default_repo_root()
     errors: list[str] = []
+    warnings: list[str] = []
+    check_phase_directories(root, errors)
     check_frontmatter(root, errors)
     check_review_contract(root, errors)
     check_template_references(root, errors)
@@ -164,13 +283,24 @@ def main(argv: list[str] | None = None) -> int:
     check_reflect_script(root, errors, args.strict)
     check_agents_metadata(root, errors)
     check_trigger_text(root, errors)
+    check_evaluation_suite(root, errors)
+    if args.install:
+        check_installation(root, Path(args.skills_dir).expanduser().resolve(), errors, warnings)
 
     if errors:
         print("Taku validation failed:")
         for error in errors:
             print(f"- {error}")
+        if warnings:
+            print("Warnings:")
+            for warning in warnings:
+                print(f"- {warning}")
         return 1
     print("Taku validation passed.")
+    if warnings:
+        print("Warnings:")
+        for warning in warnings:
+            print(f"- {warning}")
     return 0
 
 
