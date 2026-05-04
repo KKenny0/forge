@@ -16,7 +16,9 @@ ALLOWED_FRONTMATTER_KEYS = {"name", "description", "license", "allowed-tools", "
 DESCRIPTION_MAX = 1024
 PROTOCOL_START = "<!-- TAKU_LEARNINGS_PROTOCOL:START -->"
 PROTOCOL_END = "<!-- TAKU_LEARNINGS_PROTOCOL:END -->"
-PHASES = ("think", "plan", "build", "review", "debug", "reflect")
+CORE_PHASES = ("think", "plan", "build", "review", "debug", "reflect")
+UTILITY_SKILLS = ("compact",)
+ALL_SKILLS = CORE_PHASES + UTILITY_SKILLS
 EVAL_REQUIRED_FIELDS = {
     "id",
     "title",
@@ -97,6 +99,7 @@ def check_template_references(root: Path, errors: list[str]) -> None:
     expected = {
         "skills/think/SKILL.md": "templates/design-doc.md",
         "skills/plan/SKILL.md": "templates/plan.md",
+        "skills/compact/SKILL.md": "templates/compact-brief.md",
         "skills/reflect/SKILL.md": "templates/retro-report.md",
     }
     for skill, template in expected.items():
@@ -140,7 +143,7 @@ def check_reflect_script(root: Path, errors: list[str], strict: bool) -> None:
 
 
 def check_agents_metadata(root: Path, errors: list[str]) -> None:
-    paths = [root / "skills" / phase / "agents" / "openai.yaml" for phase in PHASES]
+    paths = [root / "skills" / skill / "agents" / "openai.yaml" for skill in ALL_SKILLS]
     for path in paths:
         if not path.exists():
             errors.append(f"{path.relative_to(root)}: missing UI metadata")
@@ -155,7 +158,7 @@ def check_trigger_text(root: Path, errors: list[str]) -> None:
 
 
 def check_phase_directories(root: Path, errors: list[str]) -> None:
-    for phase in PHASES:
+    for phase in CORE_PHASES:
         phase_dir = root / "skills" / phase
         if not phase_dir.is_dir():
             errors.append(f"skills/{phase}: missing phase skill directory")
@@ -164,6 +167,18 @@ def check_phase_directories(root: Path, errors: list[str]) -> None:
             errors.append(f"skills/{phase}/SKILL.md: missing phase skill file")
         if not (phase_dir / "agents" / "openai.yaml").is_file():
             errors.append(f"skills/{phase}/agents/openai.yaml: missing phase UI metadata")
+
+
+def check_utility_directories(root: Path, errors: list[str]) -> None:
+    for skill in UTILITY_SKILLS:
+        skill_dir = root / "skills" / skill
+        if not skill_dir.is_dir():
+            errors.append(f"skills/{skill}: missing utility skill directory")
+            continue
+        if not (skill_dir / "SKILL.md").is_file():
+            errors.append(f"skills/{skill}/SKILL.md: missing utility skill file")
+        if not (skill_dir / "agents" / "openai.yaml").is_file():
+            errors.append(f"skills/{skill}/agents/openai.yaml: missing utility UI metadata")
 
 
 def check_evaluation_suite(root: Path, errors: list[str]) -> None:
@@ -209,10 +224,10 @@ def check_evaluation_suite(root: Path, errors: list[str]) -> None:
                 errors.append(f"{label}: {list_field} must be a list")
         route_value = scenario.get("expected_phase_route", [])
         route = " ".join(route_value) if isinstance(route_value, list) else ""
-        for phase in PHASES:
+        for phase in CORE_PHASES:
             if f"/taku-{phase}" in route or phase.upper() in route:
                 covered_phases.add(phase)
-    missing_phase_coverage = sorted(set(PHASES) - covered_phases)
+    missing_phase_coverage = sorted(set(CORE_PHASES) - covered_phases)
     if missing_phase_coverage:
         errors.append(
             f"{path.relative_to(root)}: scenarios do not cover phase(s): {', '.join(missing_phase_coverage)}"
@@ -233,6 +248,7 @@ def resolve_expected_target(path: Path) -> Path:
 def check_installation(root: Path, skills_dir: Path, errors: list[str], warnings: list[str]) -> None:
     check_python_runtime(errors)
     check_phase_directories(root, errors)
+    check_utility_directories(root, errors)
     check_reflect_script(root, errors, strict=True)
 
     if platform.system() == "Windows":
@@ -245,9 +261,9 @@ def check_installation(root: Path, skills_dir: Path, errors: list[str], warnings
     else:
         warnings.append(f"{repo_install}: not found; skip if you run Taku from another skill directory")
 
-    for phase in PHASES:
-        command_path = skills_dir / f"taku-{phase}"
-        expected = root / "skills" / phase
+    for skill in ALL_SKILLS:
+        command_path = skills_dir / f"taku-{skill}"
+        expected = root / "skills" / skill
         if not command_path.exists():
             errors.append(f"{command_path}: missing slash-command link or junction")
             continue
@@ -274,6 +290,7 @@ def main(argv: list[str] | None = None) -> int:
     errors: list[str] = []
     warnings: list[str] = []
     check_phase_directories(root, errors)
+    check_utility_directories(root, errors)
     check_frontmatter(root, errors)
     check_review_contract(root, errors)
     check_template_references(root, errors)

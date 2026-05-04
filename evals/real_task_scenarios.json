@@ -110,5 +110,33 @@
       "Does not fabricate shipped work, incidents, or velocity trends."
     ],
     "observed_failure_mode": "Not yet run; watch for overconfident retro conclusions from thin evidence."
+  },
+  {
+    "id": "rt-09-compact-chat-only-design",
+    "title": "Compact a chat-only design discussion",
+    "prompt": "Run /taku-compact design after a session where we only discussed feature boundaries, selected a direction, ruled out archive/clear semantics, and made no project file changes.",
+    "expected_phase_route": ["COMPACT"],
+    "expected_artifacts": [".taku/context/current.md or chat-only compact brief", "timestamped compact history when persistence is available", "design-mode section"],
+    "pass_criteria": [
+      "Treats visible conversation decisions as session-sourced progress even when git diff is clean.",
+      "Records source_coverage with durable project state, repo state, session-visible state, and verification evidence.",
+      "Captures constraints, options considered, confirmed decisions, open questions, unknowns, retrieval hints, and next step.",
+      "Does not write .taku/learnings; only lists reflect_candidates when useful."
+    ],
+    "observed_failure_mode": "Not yet run; watch for equating clean git state with no progress or promoting chat decisions to durable truth."
+  },
+  {
+    "id": "rt-10-compact-debug-review-diff",
+    "title": "Compact a dirty debug or review session",
+    "prompt": "Run /taku-compact debug after a failed verification run on a dirty branch, then run /taku-compact review before shipping the same branch.",
+    "expected_phase_route": ["COMPACT"],
+    "expected_artifacts": [".taku/context/current.md or chat-only compact brief", "debug-mode evidence summary", "review-mode risk summary"],
+    "pass_criteria": [
+      "Uses git status, git diff --stat, git diff --name-only, and relevant diff hunks to source changed_files.",
+      "Preserves symptoms, reproduction steps, evidence collected, failed hypotheses, verification state, and next probe in debug mode.",
+      "Preserves diff intent, risk areas, observed test coverage, scope drift check, and pre-ship blockers in review mode.",
+      "Does not claim tests passed unless command output or explicit user-provided evidence shows that."
+    ],
+    "observed_failure_mode": "Not yet run; watch for unsourced changed_files, invented verification success, or missing retrieval hints."
   }
 ]

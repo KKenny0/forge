@@ -4,19 +4,19 @@
 
 <h1 align="center">Taku 琢</h1>
 
-<p align="center"><strong>一个面向 AI 辅助软件交付的纪律化 Sprint 系统。</strong></p>
+<p align="center"><strong>一组面向 coding agent 的工程习惯 skills，用来控制 scope、上下文与交付质量。</strong></p>
 
 <p align="center">
   <a href="README.en.md">English README</a>
 </p>
 
 <p align="center">
-  清晰思考，具体计划，以 TDD 构建，审查真实 diff，定位根因，沉淀关键经验。
+  清晰思考，具体计划，以 TDD 构建，审查真实 diff，定位根因，压缩工作上下文，沉淀关键经验。
 </p>
 
 <p align="center">
-  Taku 通过一套结构化的六阶段 Sprint，帮助 coding agent 更稳定地交付可靠软件：
-  澄清问题，生成可执行计划，以可见结构完成构建，审查真实代码变更，基于证据完成验证，并在检查失败时从根因开始调试。
+  Taku 通过一套结构化的核心 workflow 和 bonus utility skills，帮助 coding agent 更稳定地交付可靠软件：
+  澄清问题，生成可执行计划，以可见结构完成构建，审查真实代码变更，基于证据完成验证，在检查失败时从根因开始调试，并在长任务中保留可恢复的工作状态。
 </p>
 
 > 如切如磋，如琢如磨
@@ -29,6 +29,7 @@
 
 - [快速开始](#快速开始)
 - [核心工作流](#核心工作流)
+- [Bonus Utility Skills](#bonus-utility-skills)
 - [Taku 的不同之处](#taku-的不同之处)
 - [Before / After](#before--after)
 - [安装](#安装)
@@ -59,6 +60,8 @@ Request → Think → Plan → Build → Review → Verify → Reflect
 6. `/taku-reflect`：仅在确实有值得保留的经验时执行沉淀。
 
 > **Verify 与 Debug：** Verification 是工作流中的质量门禁。`/taku-debug` 是当门禁失败，或者行为已经异常时使用的 skill。Taku 没有单独的 `/taku-test`。
+>
+> **Context Control：** 长任务、调试、审查、设计讨论或研究摸底中，可以使用 `/taku-compact` 生成可恢复的当前工作 brief。它不是第七阶段，也不会写长期 memory。
 
 ### 示例 Sprint
 
@@ -84,6 +87,16 @@ Taku 围绕六个聚焦的阶段 skill 组织：
 | Reflect | `/taku-reflect` | 某个模式或经验值得保留 | 经用户批准的 learnings，可选 retro report |
 
 这些 skills 被设计为可以在阶段之间交接工作。`/taku-think` 会根据任务复杂度自动选择 Quick、Design 或 Explore 模式。重要任务会获得足够严格的流程，小任务则避免过度仪式化。
+
+## Bonus Utility Skills
+
+Taku 也包含横切 workflow 的 utility skills。它们不是第七阶段，不改变核心六阶段路径。
+
+| Skill | 命令 | 使用时机 | 主要输出 |
+|---|---|---|---|
+| Compact | `/taku-compact` | 长任务上下文膨胀、交接、恢复、调试、审查、设计或研究之后 | 带 source tags、unknowns、retrieval hints 和下一步的可恢复 compact brief |
+
+`/taku-compact` 支持 `resume`、`handoff`、`debug`、`review`、`design` 和 `research` modes。它默认把最新恢复入口写入 `.taku/context/current.md`，并追加 timestamped compact history。它只整理当前任务上下文；长期经验仍然必须通过 `/taku-reflect` 经用户批准后沉淀。
 
 ## Taku 的不同之处
 
@@ -148,6 +161,12 @@ Taku 的 debug flow 强调 evidence-first：
 
 只有经过用户批准的 patterns、pitfalls、preferences 和 discoveries 才会被保留。
 
+### 7. 控制当前工作上下文
+
+`/taku-compact` 是面向长任务的 context-control habit。它先扫描 durable sources、git evidence 和当前 session 中可见的用户决策、工具输出与验证证据，再生成结构化 brief。
+
+这个 brief 会明确标注哪些结论来自项目文件、git、当前对话，哪些只是推断；证据不足时必须写 `unknown`。它可以列出 `reflect_candidates`，但不会写入 `.taku/learnings`。
+
 ## Before / After
 
 **Without Taku:**
@@ -177,7 +196,7 @@ Taku 的 debug flow 强调 evidence-first：
 npx skills add KKenny0/Taku -g --all
 ```
 
-也可以单独安装某个阶段：
+也可以单独安装某个 skill：
 
 ```bash
 # 查看仓库中有哪些技能
@@ -200,7 +219,7 @@ npx skills add KKenny0/Taku -g --skill taku-think
 npx skills update -g
 ```
 
-安装完成后，开启一个新 session 并输入 `/taku-`，确认六个阶段命令已被发现：
+安装完成后，开启一个新 session 并输入 `/taku-`，确认核心阶段命令和 bonus utility 命令已被发现：
 
 ```text
 /taku-think
@@ -209,6 +228,7 @@ npx skills update -g
 /taku-review
 /taku-debug
 /taku-reflect
+/taku-compact
 ```
 
 ### 备选：git clone
@@ -219,21 +239,21 @@ npx skills update -g
 git clone https://github.com/KKenny0/Taku.git ~/.claude/skills/taku
 ```
 
-将每个阶段暴露为独立 slash command：
+将每个 skill 暴露为独立 slash command：
 
 ```bash
 # macOS / Linux
-for phase in think plan build review debug reflect; do
-  ln -s ~/.claude/skills/taku/skills/$phase ~/.claude/skills/taku-$phase
+for skill in think plan build review debug reflect compact; do
+  ln -s ~/.claude/skills/taku/skills/$skill ~/.claude/skills/taku-$skill
 done
 ```
 
 ```powershell
 # Windows PowerShell
-foreach ($phase in @("think","plan","build","review","debug","reflect")) {
+foreach ($skill in @("think","plan","build","review","debug","reflect","compact")) {
   New-Item -ItemType Junction `
-    -Path "$env:USERPROFILE\.claude\skills\taku-$phase" `
-    -Target "$env:USERPROFILE\.claude\skills\taku\skills\$phase"
+    -Path "$env:USERPROFILE\.claude\skills\taku-$skill" `
+    -Target "$env:USERPROFILE\.claude\skills\taku\skills\$skill"
 }
 ```
 
@@ -294,12 +314,14 @@ Taku/
 │   ├── build/
 │   ├── review/
 │   ├── debug/
-│   └── reflect/
+│   ├── reflect/
+│   └── compact/
 ├── platform/
 │   └── openclaw.md
 ├── templates/
 │   ├── design-doc.md
 │   ├── plan.md
+│   ├── compact-brief.md
 │   └── retro-report.md
 ```
 
@@ -338,7 +360,8 @@ Taku 适合那些已经意识到“原始代码生成”并不是主要瓶颈的
 - 希望更好地控制 scope expansion。
 - 需要显式的 TDD 与 verification gates。
 - 希望拆分较大实现，同时不丢失 review discipline。
-- 希望在多个项目中复用同一套 sprint shape。
+- 希望在多个项目中复用同一套 engineering habits。
+- 希望长任务、调试、审查或研究中能保留可恢复的上下文 brief。
 
 如果你只想“先快速写点东西，后面再说”，Taku 的流程可能显得偏重。它的优化目标是可靠性与杠杆率。
 
@@ -371,14 +394,15 @@ Taku 建立在两个重要基础之上：
 - **[Superpowers](https://github.com/obra/superpowers)** by [Jesse Vincent](https://github.com/obra)：engineering discipline、TDD enforcement、systematic debugging、evidence-based completion。
 - **[gstack](https://github.com/garrytan/gstack)** by [Garry Tan](https://github.com/garrytan)：sprint thinking、product pressure-testing、QA methodology、parallel execution patterns。
 
-Taku 是围绕六阶段 sprint 做出的更窄、更强调工程纪律的综合设计。
+Taku 是围绕六阶段 workflow 和可复用 agent habits 做出的更窄、更强调工程纪律的综合设计。
 
 ## Roadmap 方向
 
-当前仓库已经具备核心 sprint spine。下一层重点不应只是增加更多 commands，而应继续提高执行质量：
+当前仓库已经具备核心 workflow spine。下一层重点不应只是增加更多 commands，而应继续提高执行质量和上下文续航：
 
 - 更严格的 phase handoff contracts。
 - 更显式的 BUILD scheduling 和长任务中的 wave visibility。
+- 更可靠的 context-control habits，例如 compact handoff、debug continuation 和 research brief。
 - 对真实 repo 变更更强的 review / test coverage。
 - 更好的 packaging 与 distribution ergonomics。
 - 更清晰的 active product work 使用示例。

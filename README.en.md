@@ -4,7 +4,7 @@
 
 <h1 align="center">Taku 琢</h1>
 
-<p align="center"><strong>A disciplined sprint system for AI-assisted software delivery.</strong></p>
+<p align="center"><strong>Engineering habits for coding agents that keep scope, context, and quality under control.</strong></p>
 
 <p align="center">
   <a href="README.md">中文 README</a>
@@ -24,6 +24,7 @@
 
 - [Quick Start](#quick-start)
 - [Core Workflow](#core-workflow)
+- [Bonus Utility Skills](#bonus-utility-skills)
 - [What Makes It Different](#what-makes-it-different)
 - [Before / After](#before--after)
 - [Installation](#installation)
@@ -52,6 +53,8 @@ Typical flow for a real task:
 6. `/taku-reflect` — only when something is worth preserving
 
 > **Verify vs Debug:** Verification is a gate in the workflow. `/taku-debug` is the skill used when that gate fails or behavior is already broken. There is no separate `/taku-test`.
+>
+> **Context Control:** During long tasks, debugging, review, design discussion, or research, use `/taku-compact` to create a recoverable active-work brief. It is not a seventh phase and does not write long-term memory.
 
 ### Example Sprint
 
@@ -77,6 +80,16 @@ The repository is organized around six focused phase skills:
 | Reflect | `/taku-reflect` | A pattern or lesson is worth preserving | Approved learnings, optional retro report |
 
 The skills are designed to hand work off from one phase to the next. `/taku-think` auto-selects Quick, Design, or Explore mode based on task complexity — you get rigor when it matters, less ceremony when it does not.
+
+## Bonus Utility Skills
+
+Taku also includes utility skills that cut across the core workflow. They are not seventh phases and do not change the six-phase path.
+
+| Skill | Command | Use it when | Main output |
+|-------|---------|-------------|-------------|
+| Compact | `/taku-compact` | Context-heavy work, handoff, resume, debugging, review, design, or research | Recoverable compact brief with source tags, unknowns, retrieval hints, and next step |
+
+`/taku-compact` supports `resume`, `handoff`, `debug`, `review`, `design`, and `research` modes. By default it writes the latest recovery entry to `.taku/context/current.md` and appends timestamped compact history. It only preserves active task context; long-term learnings still require user-approved `/taku-reflect`.
 
 ## What Makes It Different
 
@@ -141,6 +154,12 @@ On the first successful reflect run for a project, it can also suggest bootstrap
 
 Only user-approved patterns, pitfalls, preferences, and discoveries get preserved.
 
+### 7. It keeps active context recoverable
+
+`/taku-compact` is a context-control habit for long-running work. It scans durable sources, git evidence, and visible session state before producing a structured brief.
+
+The brief marks whether important claims came from project files, git, the current conversation, or inference. When evidence is missing, it must say `unknown`. It may list `reflect_candidates`, but it never writes `.taku/learnings`.
+
 ## Before / After
 
 **Without Taku:**
@@ -170,7 +189,7 @@ One-line install using the [skills CLI](https://github.com/anthropics/skills) (r
 npx skills add KKenny0/Taku -g --all
 ```
 
-Or install individual phases:
+Or install individual skills:
 
 ```bash
 # List available skills
@@ -193,7 +212,7 @@ To update after upstream changes:
 npx skills update -g
 ```
 
-After installation, start a new session and type `/taku-` to confirm all six phase commands are discovered:
+After installation, start a new session and type `/taku-` to confirm the core phase commands and bonus utility command are discovered:
 
 ```text
 /taku-think
@@ -202,6 +221,7 @@ After installation, start a new session and type `/taku-` to confirm all six pha
 /taku-review
 /taku-debug
 /taku-reflect
+/taku-compact
 ```
 
 ### Alternative: git clone
@@ -212,21 +232,21 @@ If you prefer manual installation:
 git clone https://github.com/KKenny0/Taku.git ~/.claude/skills/taku
 ```
 
-Expose each phase as its own slash command:
+Expose each skill as its own slash command:
 
 ```bash
 # macOS / Linux
-for phase in think plan build review debug reflect; do
-  ln -s ~/.claude/skills/taku/skills/$phase ~/.claude/skills/taku-$phase
+for skill in think plan build review debug reflect compact; do
+  ln -s ~/.claude/skills/taku/skills/$skill ~/.claude/skills/taku-$skill
 done
 ```
 
 ```powershell
 # Windows PowerShell
-foreach ($phase in @("think","plan","build","review","debug","reflect")) {
+foreach ($skill in @("think","plan","build","review","debug","reflect","compact")) {
   New-Item -ItemType Junction `
-    -Path "$env:USERPROFILE\.claude\skills\taku-$phase" `
-    -Target "$env:USERPROFILE\.claude\skills\taku\skills\$phase"
+    -Path "$env:USERPROFILE\.claude\skills\taku-$skill" `
+    -Target "$env:USERPROFILE\.claude\skills\taku\skills\$skill"
 }
 ```
 
@@ -287,12 +307,14 @@ Taku/
 │   ├── build/
 │   ├── review/
 │   ├── debug/
-│   └── reflect/
+│   ├── reflect/
+│   └── compact/
 ├── platform/
 │   └── openclaw.md
 ├── templates/
 │   ├── design-doc.md
 │   ├── plan.md
+│   ├── compact-brief.md
 │   └── retro-report.md
 ```
 
@@ -331,7 +353,8 @@ It is a strong fit when you want:
 - better control over scope expansion
 - explicit TDD and verification gates
 - a way to split larger implementations without losing review discipline
-- a reusable sprint shape across projects
+- reusable engineering habits across projects
+- recoverable context briefs during long tasks, debugging, review, or research
 
 It is a poor fit if you want "just write something fast and we will sort it out later". Taku is optimized for reliability and leverage, not maximum prompt minimalism.
 
@@ -364,14 +387,15 @@ Taku stands on two strong foundations:
 - **[Superpowers](https://github.com/obra/superpowers)** by [Jesse Vincent](https://github.com/obra): engineering discipline, TDD enforcement, systematic debugging, and evidence-based completion
 - **[gstack](https://github.com/garrytan/gstack)** by [Garry Tan](https://github.com/garrytan): sprint thinking, product pressure-testing, QA methodology, and parallel execution patterns
 
-Taku is not a clone of either. It is a narrower, more opinionated synthesis around a six-phase sprint.
+Taku is not a clone of either. It is a narrower, more opinionated synthesis around a six-phase workflow and reusable agent habits.
 
 ## Roadmap Direction
 
-The current repo already has the core sprint spine in place. The obvious next layer is not "more commands", but sharper execution quality:
+The current repo already has the core workflow spine in place. The obvious next layer is not "more commands", but sharper execution quality and context continuity:
 
 - tighter handoff contracts between phases
 - more explicit BUILD scheduling and wave visibility during long-running execution
+- more reliable context-control habits such as compact handoffs, debug continuation, and research briefs
 - stronger review/test coverage for real-world repo changes
 - better packaging and distribution ergonomics
 - clearer examples of how to use Taku inside active product work
